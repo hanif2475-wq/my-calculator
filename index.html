@@ -2,11 +2,16 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#111111">
 <title>Calculator & Remittance</title>
-<style>
+button, .key {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}<style>
 :root{--bg:#101114;--panel:#1b1d22;--btn:#292c33;--orange:#ff941f;--white:#fff;--muted:#aaa;--green:#38c985;--red:#ff6464}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--white);font-family:Arial,sans-serif}
