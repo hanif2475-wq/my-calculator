@@ -1,76 +1,361 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#111827">
-<title>আমার ক্যালকুলেটর</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>Calculator & Remittance</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f3f4f6}
-*{box-sizing:border-box}body{margin:0;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);max-width:520px;margin-inline:auto}
-header{padding:18px 4px 10px}h1{font-size:23px;margin:0 0 5px}.sub{color:#6b7280;font-size:13px}
-.tabs{display:flex;gap:8px;margin:10px 0}.tab{flex:1;padding:11px;border:0;border-radius:12px;background:#e5e7eb;font-weight:700}.tab.active{background:#111827;color:white}
-.panel{background:white;border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 2px 10px #0000000a}
-#display{width:100%;font-size:34px;text-align:right;border:0;outline:0;padding:14px 4px;background:#f9fafb;border-radius:12px;color:#111827}
-#history{text-align:right;color:#6b7280;min-height:20px;font-size:14px;padding:5px}
-.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px}
-button.key{border:0;border-radius:14px;padding:17px 4px;font-size:21px;background:#e5e7eb;color:#111827}
-button.op{background:#dbeafe;color:#1d4ed8;font-weight:700}button.eq{background:#2563eb;color:white}button.clear{background:#fee2e2;color:#b91c1c}
-label{display:block;font-size:14px;font-weight:650;margin:12px 0 5px}
-input.field{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:17px}
-.result{background:#ecfdf5;border-radius:12px;padding:14px;margin-top:14px}
-.result strong{display:block;font-size:25px;color:#047857;margin-top:5px}
-.small{font-size:12px;color:#6b7280;line-height:1.5}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.hidden{display:none}
+:root{--bg:#101114;--panel:#1b1d22;--btn:#292c33;--orange:#ff941f;--white:#fff;--muted:#aaa;--green:#38c985;--red:#ff6464}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--white);font-family:Arial,sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:14px 15px 28px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.logo{font-size:20px;font-weight:bold}
+select,input,button{font:inherit}
+.lang{background:var(--panel);color:white;border:1px solid #393b43;padding:9px;border-radius:10px}
+.tabs,.modebar{display:flex;gap:8px;margin-bottom:14px}
+.tab,.mode{flex:1;border:0;border-radius:12px;padding:12px;background:var(--panel);color:#bbb;font-weight:bold}
+.tab.active{background:var(--orange);color:#171717}
+.mode.active{border:1px solid var(--orange);color:var(--orange)}
+.display{background:#191b20;border-radius:17px;padding:18px;margin-bottom:13px;min-height:115px;display:flex;flex-direction:column;justify-content:flex-end}
+.expression{color:var(--muted);font-size:18px;min-height:28px;text-align:right;overflow-wrap:anywhere}
+.result{font-size:clamp(30px,8vw,42px);font-weight:600;text-align:right;overflow-wrap:anywhere}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.key{height:65px;border:0;border-radius:16px;background:var(--btn);color:white;font-size:25px;font-weight:600}
+.key.op,.key.action{color:var(--orange)}
+.key.action{font-size:18px}
+.key.equal{background:var(--orange);color:#171717}
+.key.zero{grid-column:span 2}
+.section{display:none}.section.active{display:block}
+.remit-card{background:var(--panel);padding:16px;border-radius:17px;margin-bottom:13px}
+.remit-card h3{margin:0 0 14px;font-size:17px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:13px;color:#c5c6cb;margin-bottom:6px}
+.field input{width:100%;background:#101216;color:white;border:1px solid #393c44;border-radius:10px;padding:12px;outline:none}
+.field input:focus{border-color:var(--orange)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.smallbtn{border:0;border-radius:10px;padding:11px 14px;background:#343740;color:white}
+.clearbtn{background:#442b25;color:#ffb08a}
+.result-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #35373e;font-size:14px}
+.result-row span{color:#c0c1c7}
+.result-row strong{text-align:right;overflow-wrap:anywhere}
+.result-row.total{font-size:17px;color:var(--green);border:0}
+.result-row.benefit{color:var(--orange)}
+.details{background:#111318;padding:12px;border-radius:10px;margin-top:12px;font-size:13px;line-height:1.8;color:#ddd;white-space:pre-line}
+.error{color:var(--red);font-size:13px;margin-top:8px;min-height:18px}
+.footer{text-align:center;color:#777;font-size:11px;margin-top:22px}
+@media(max-width:360px){.key{height:58px}.app{padding:11px}}
 </style>
 </head>
 <body>
-<header><h1>আমার ক্যালকুলেটর</h1><div class="sub">সাধারণ হিসাব ও রেমিট্যান্স হিসাব—এক জায়গায়</div></header>
-<div class="tabs">
-<button class="tab active" id="basicTab" onclick="showTab('basic')">সাধারণ ক্যালকুলেটর</button>
-<button class="tab" id="remitTab" onclick="showTab('remit')">রেমিট্যান্স</button>
+<div class="app">
+<header>
+<div class="logo">🟠 Calculator</div>
+<select class="lang" id="language">
+<option value="bn">বাংলা</option>
+<option value="en">English</option>
+</select>
+</header>
+
+<nav class="tabs">
+<button class="tab active" id="calcTab" onclick="showSection('calc')">ক্যালকুলেটর</button>
+<button class="tab" id="remitTab" onclick="showSection('remit')">রেমিট্যান্স</button>
+</nav>
+
+<section class="section active" id="calc">
+<div class="modebar">
+<button class="mode active" id="seqMode" onclick="setMode('seq')">Sequential</button>
+<button class="mode" id="regularMode" onclick="setMode('regular')">Regular</button>
 </div>
-<section id="basic" class="panel">
-<div id="history">ধাপে ধাপে হিসাব করুন</div>
-<input id="display" value="0" readonly aria-label="ফলাফল">
+<div class="display">
+<div class="expression" id="expression">0</div>
+<div class="result" id="calcResult">0</div>
+</div>
 <div class="keys">
-<button class="key clear" onclick="clearAll()">AC</button><button class="key" onclick="backspace()">⌫</button><button class="key op" onclick="percent()">%</button><button class="key op" onclick="operator('÷')">÷</button>
-<button class="key" onclick="digit('7')">7</button><button class="key" onclick="digit('8')">8</button><button class="key" onclick="digit('9')">9</button><button class="key op" onclick="operator('×')">×</button>
-<button class="key" onclick="digit('4')">4</button><button class="key" onclick="digit('5')">5</button><button class="key" onclick="digit('6')">6</button><button class="key op" onclick="operator('-')">−</button>
-<button class="key" onclick="digit('1')">1</button><button class="key" onclick="digit('2')">2</button><button class="key" onclick="digit('3')">3</button><button class="key op" onclick="operator('+')">+</button>
-<button class="key" onclick="sign()">+/−</button><button class="key" onclick="digit('0')">0</button><button class="key" onclick="dot()">.</button><button class="key eq" onclick="equals()">=</button>
+<button class="key action" onclick="clearCalc()">AC</button>
+<button class="key action" onclick="deleteCalc()">DEL</button>
+<button class="key op" onclick="appendCalc('(')">(</button>
+<button class="key op" onclick="appendCalc('÷')">÷</button>
+<button class="key" onclick="appendCalc('7')">7</button>
+<button class="key" onclick="appendCalc('8')">8</button>
+<button class="key" onclick="appendCalc('9')">9</button>
+<button class="key op" onclick="appendCalc('×')">×</button>
+<button class="key" onclick="appendCalc('4')">4</button>
+<button class="key" onclick="appendCalc('5')">5</button>
+<button class="key" onclick="appendCalc('6')">6</button>
+<button class="key op" onclick="appendCalc('−')">−</button>
+<button class="key" onclick="appendCalc('1')">1</button>
+<button class="key" onclick="appendCalc('2')">2</button>
+<button class="key" onclick="appendCalc('3')">3</button>
+<button class="key op" onclick="appendCalc('+')">+</button>
+<button class="key action" onclick="appendCalc('%')">%</button>
+<button class="key zero" onclick="appendCalc('0')">0</button>
+<button class="key" onclick="appendCalc('.')">.</button>
+<button class="key op" onclick="appendCalc(')')">)</button>
+<button class="key equal" onclick="calculate()" style="grid-column:span 4">=</button>
 </div>
-<p class="small">এখানে প্রতিটি অপারেশন আগের ফলাফলের ওপর সঙ্গে সঙ্গে কাজ করে। যেমন: 27000 + 405 ÷ 34 → আগে যোগ, পরে ভাগ।</p>
-</section>
-<section id="remit" class="panel hidden">
-<h3 style="margin:2px 0 8px">রেমিট্যান্স ক্যালকুলেটর</h3>
-<label>বাংলাদেশি টাকার পরিমাণ</label><input class="field" id="amount" type="number" value="27000" oninput="calcRemit()">
-<div class="row">
-<div><label>প্রতি হাজারে যোগ (৳)</label><input class="field" id="perThousand" type="number" value="15" oninput="calcRemit()"></div>
-<div><label>এক রিয়ালের রেট (৳)</label><input class="field" id="rate" type="number" value="34.13" oninput="calcRemit()"></div>
-<div><label>প্রণোদনা (%)</label><input class="field" id="bonus" type="number" value="2.5" oninput="calcRemit()"></div>
-<div><label>ফি (QAR)</label><input class="field" id="fee" type="number" value="20" oninput="calcRemit()"></div>
+<div class="error" id="calcError"></div>
+<div style="display:flex;gap:9px;margin-top:12px">
+<button class="smallbtn" onclick="copyCalc()" id="copyCalc">ফলাফল কপি</button>
+<button class="smallbtn clearbtn" onclick="clearCalc()" id="clearCalcText">সব মুছুন</button>
 </div>
-<div class="result"><span>সর্বমোট খরচ</span><strong id="total">— QAR</strong><div id="details" class="small"></div></div>
-<p class="small">হিসাবের নিয়ম: মূল টাকা + প্রতি হাজারে যোগ → প্রণোদনা যোগ → রেট দিয়ে ভাগ → ট্রান্সফার ফি যোগ। আপনার রেমিট্যান্স সেবায় প্রণোদনার যোগ্যতা ও ফি আলাদা হতে পারে।</p>
 </section>
+
+<section class="section" id="remit">
+<div class="remit-card">
+<h3 id="inputTitle">রেমিট্যান্স তথ্য</h3>
+<div class="field"><label id="amountLabel">মোট পাঠানো পরিমাণ</label><input id="amount" type="number" min="0" step="any" placeholder="0"></div>
+<div class="two">
+<div class="field"><label id="fromLabel">From Currency</label><input id="fromCurrency" list="currencies" value="QAR"></div>
+<div class="field"><label id="toLabel">To Currency</label><input id="toCurrency" list="currencies" value="BDT"></div>
+</div>
+<datalist id="currencies">
+<option value="BDT"><option value="QAR"><option value="USD"><option value="SAR"><option value="AED"><option value="INR"><option value="GBP"><option value="EUR"><option value="KWD"><option value="OMR"><option value="BHD"><option value="PKR"><option value="LKR"><option value="NPR"><option value="MYR"><option value="SGD"><option value="CAD"><option value="AUD"><option value="JPY"><option value="CNY">
+</datalist>
+<div class="field"><label id="actualLabel">Actual Currency Rate</label><input id="actualRate" type="number" min="0" step="any" placeholder="0"></div>
+<div class="field"><label id="manualLabel">Manual Currency Rate</label><input id="manualRate" type="number" min="0" step="any" value="0"></div>
+<div class="two">
+<div class="field"><label id="incentiveLabel">Incentive (%)</label><input id="incentive" type="number" min="0" step="any" value="0"></div>
+<div class="field"><label id="feeLabel">Fee</label><input id="fee" type="number" min="0" step="any" value="0"></div>
+</div>
+<div class="field"><label id="extraLabel">Per 1000 Extra Add</label><input id="extra" type="number" min="0" step="any" value="0"></div>
+<div class="error" id="remitError"></div>
+<button class="smallbtn clearbtn" onclick="clearRemit()" id="clearRemit">সব ইনপুট মুছুন</button>
+</div>
+
+<div class="remit-card">
+<h3 id="resultTitle">হিসাবের ফলাফল</h3>
+<div id="remitResults"></div>
+<div class="details" id="calculationDetails"></div>
+<button class="smallbtn" style="margin-top:12px" onclick="copyRemit()" id="copyRemit">ফলাফল কপি</button>
+</div>
+</section>
+<div class="footer">Calculator & Remittance</div>
+</div>
+
 <script>
-let current='0', stored=null, op=null, fresh=false, historyText='';
-const display=document.getElementById('display'), historyEl=document.getElementById('history');
-function fmt(n){return Number(n.toPrecision(12)).toLocaleString('en-US',{maximumFractionDigits:10,useGrouping:false})}
-function render(){display.value=current}
-function digit(d){if(fresh){current=d;fresh=false}else current=current==='0'?d:current+d;render()}
-function dot(){if(fresh){current='0.';fresh=false}else if(!current.includes('.'))current+='.';render()}
-function apply(a,b,o){if(o==='+')return a+b;if(o==='-')return a-b;if(o==='×')return a*b;if(o==='÷')return b===0?NaN:a/b;return b}
-function operator(next){let v=Number(current);if(!Number.isFinite(v))return;if(op&&stored!==null&&!fresh){v=apply(stored,v,op);current=fmt(v)}stored=Number(current);op=next;fresh=true;historyEl.textContent=fmt(stored)+' '+next;render()}
-function equals(){if(op&&stored!==null){let a=stored,b=Number(current),o=op;let r=apply(a,b,o);historyEl.textContent=fmt(a)+' '+o+' '+fmt(b)+' =';current=Number.isFinite(r)?fmt(r):'Error';stored=null;op=null;fresh=true;render()}}
-function clearAll(){current='0';stored=null;op=null;fresh=false;historyEl.textContent='হিসাব মুছে ফেলা হয়েছে';render()}
-function backspace(){if(fresh)return;current=current.length>1?current.slice(0,-1):'0';render()}
-function percent(){current=fmt(Number(current)/100);render()}
-function sign(){current=fmt(-Number(current));render()}
-function showTab(t){document.getElementById('basic').classList.toggle('hidden',t!=='basic');document.getElementById('remit').classList.toggle('hidden',t!=='remit');document.getElementById('basicTab').classList.toggle('active',t==='basic');document.getElementById('remitTab').classList.toggle('active',t==='remit')}
-function calcRemit(){let a=Number(document.getElementById('amount').value),p=Number(document.getElementById('perThousand').value),r=Number(document.getElementById('rate').value),b=Number(document.getElementById('bonus').value),f=Number(document.getElementById('fee').value);if(![a,p,r,b,f].every(Number.isFinite)||r<=0){document.getElementById('total').textContent='সঠিক তথ্য দিন';document.getElementById('details').textContent='';return}let extra=a/1000*p,subtotal=a+extra,withBonus=subtotal*(1+b/100),q=withBonus/r,total=q+f;document.getElementById('total').textContent=total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' QAR';document.getElementById('details').textContent='প্রতি হাজারে যোগ: ৳'+extra.toFixed(2)+' | প্রণোদনাসহ: ৳'+withBonus.toFixed(2)+' | ভাগের ফল: '+q.toFixed(2)+' QAR | ফি: '+f.toFixed(2)+' QAR'}
-calcRemit();
+const $=id=>document.getElementById(id);
+let expression="",calcMode="seq",language="bn";
+
+const words={
+bn:{calc:"ক্যালকুলেটর",remit:"রেমিট্যান্স",input:"রেমিট্যান্স তথ্য",result:"হিসাবের ফলাফল",amount:"মোট পাঠানো পরিমাণ",from:"যে মুদ্রা থেকে",to:"যে মুদ্রায়",actual:"প্রকৃত বিনিময় হার",manual:"নিজস্ব বিনিময় হার",incentive:"প্রণোদনা (%)",fee:"ফি / চার্জ",extra:"প্রতি ১০০০-এ অতিরিক্ত",clear:"সব ইনপুট মুছুন",copy:"ফলাফল কপি",total:"মোট পাঠানো পরিমাণ",converted:"কনভার্ট করা অর্থ",extraResult:"প্রতি হাজারে অতিরিক্ত",incentiveResult:"প্রণোদনার পরিমাণ",benefit:"মোট Benefit",balance:"Main Balance",details:"হিসাবের বিবরণ",seq:"Sequential",regular:"Regular"},
+en:{calc:"Calculator",remit:"Remittance",input:"Remittance Information",result:"Calculation Results",amount:"Total Convert Amount",from:"From Currency",to:"To Currency",actual:"Actual Currency Rate",manual:"Manual Currency Rate",incentive:"Incentive (%)",fee:"Fee / Charge",extra:"Per 1000 Extra Add",clear:"Clear All Inputs",copy:"Copy Result",total:"Total Convert Amount",converted:"Converted Amount",extraResult:"Extra Add",incentiveResult:"Incentive Amount",benefit:"Total Benefit",balance:"Main Balance",details:"Calculation Details",seq:"Sequential",regular:"Regular"}
+};
+function t(k){return words[language][k]||k}
+function showSection(s){
+$("calc").classList.toggle("active",s==="calc");
+$("remit").classList.toggle("active",s==="remit");
+$("calcTab").classList.toggle("active",s==="calc");
+$("remitTab").classList.toggle("active",s==="remit");
+}
+function setMode(m){
+calcMode=m;
+$("seqMode").classList.toggle("active",m==="seq");
+$("regularMode").classList.toggle("active",m==="regular");
+updateCalc();
+}
+function appendCalc(v){expression+=v;updateCalc()}
+function clearCalc(){expression="";$("calcError").textContent="";updateCalc()}
+function deleteCalc(){expression=expression.slice(0,-1);updateCalc()}
+function tokenize(s){
+s=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/\s/g,"");
+let a=[],i=0;
+while(i<s.length){
+let c=s[i];
+if(/[0-9.]/.test(c)){
+let n="";
+while(i<s.length&&/[0-9.]/.test(s[i]))n+=s[i++];
+if((n.match(/\./g)||[]).length>1||n===".")throw Error("number");
+a.push(Number(n));continue;
+}
+if("+-*/()%".includes(c)){a.push(c);i++;continue}
+throw Error("syntax");
+}
+return a;
+}
+function regular(tokens){
+let p=0;
+function primary(){
+let v;
+if(tokens[p]==="-"){p++;v=-primary()}
+else if(tokens[p]==="+"){p++;v=primary()}
+else if(tokens[p]==="("){p++;v=add();if(tokens[p]!==")")throw Error("bracket");p++}
+else{if(typeof tokens[p]!=="number")throw Error("number");v=tokens[p++]}
+while(tokens[p]==="%"){v/=100;p++}
+return v;
+}
+function mul(){
+let v=primary();
+while(tokens[p]==="*"||tokens[p]==="/"){
+let op=tokens[p++],b=primary();
+if(op==="/"&&b===0)throw Error("zero");
+v=op==="*"?v*b:v/b;
+}
+return v;
+}
+function add(){
+let v=mul();
+while(tokens[p]==="+"||tokens[p]==="-"){
+let op=tokens[p++],b=mul();v=op==="+"?v+b:v-b;
+}
+return v;
+}
+let r=add();if(p!==tokens.length)throw Error("syntax");return r;
+}
+function sequential(tokens){
+let p=0;
+function group(){
+let vals=[],ops=[],expect=true;
+while(p<tokens.length&&tokens[p]!==")"){
+let x=tokens[p];
+if(x==="("){p++;let v=group();if(tokens[p]!==")")throw Error("bracket");p++;vals.push(v);expect=false;continue}
+if(typeof x==="number"){
+if(!expect)throw Error("syntax");
+let v=x;p++;
+if(tokens[p]==="%"){v/=100;p++}
+vals.push(v);expect=false;continue;
+}
+if(["+","-","*","/"].includes(x)){
+if(expect&&(x==="+"||x==="-")){
+p++;
+if(x==="-"&&typeof tokens[p]==="number"){vals.push(-tokens[p++]);expect=false}
+continue;
+}
+if(expect)throw Error("syntax");
+ops.push(x);p++;expect=true;continue;
+}
+throw Error("syntax");
+}
+if(expect||!vals.length)throw Error("syntax");
+let v=vals[0];
+for(let i=0;i<ops.length;i++){
+let b=vals[i+1],op=ops[i];
+if(op==="/"&&b===0)throw Error("zero");
+if(op==="+")v+=b;
+if(op==="-")v-=b;
+if(op==="*")v*=b;
+if(op==="/")v/=b;
+}
+return v;
+}
+let r=group();if(p!==tokens.length)throw Error("bracket");return r;
+}
+function evaluate(s){
+let tokens=tokenize(s);
+return calcMode==="seq"?sequential(tokens):regular(tokens);
+}
+function fmt(n){if(!Number.isFinite(n))return "Error";return Number(n.toPrecision(12)).toString()}
+function updateCalc(){
+$("expression").textContent=expression||"0";
+if(!expression){$("calcResult").textContent="0";return}
+try{$("calcResult").textContent=fmt(evaluate(expression));$("calcError").textContent=""}
+catch(e){$("calcResult").textContent="…"}
+}
+function calculate(){
+if(!expression)return;
+try{let r=evaluate(expression);expression=fmt(r);$("expression").textContent="= "+expression;$("calcResult").textContent=expression;$("calcError").textContent=""}
+catch(e){$("calcError").textContent=e.message==="zero"?"শূন্য দিয়ে ভাগ করা যাবে না":"হিসাবটি সঠিক নয়"}
+}
+async function copyText(s){
+try{await navigator.clipboard.writeText(s)}catch(e){
+let x=document.createElement("textarea");x.value=s;document.body.appendChild(x);x.select();document.execCommand("copy");x.remove();
+}
+alert(language==="bn"?"কপি হয়েছে":"Copied");
+}
+function copyCalc(){copyText($("calcResult").textContent)}
+function val(id){return Number($(id).value||0)}
+function money(n){return Number(n.toFixed(8)).toLocaleString("en-US",{maximumFractionDigits:8})}
+
+function calculateRemit(){
+let amount=val("amount"),actual=val("actualRate"),manual=val("manualRate"),inc=val("incentive"),fee=val("fee"),extra=val("extra");
+let err=$("remitError");
+if([amount,actual,manual,inc,fee,extra].some(x=>!Number.isFinite(x)||x<0)){
+err.textContent=language==="bn"?"সঠিক সংখ্যা লিখুন":"Enter valid numbers";$("remitResults").innerHTML="";return;
+}
+if(amount===0||actual===0){
+err.textContent=language==="bn"?"হিসাবের জন্য Amount ও Actual Rate দিন":"Enter amount and actual rate";$("remitResults").innerHTML="";$("calculationDetails").textContent="";return;
+}
+err.textContent="";
+let rate=manual>0?manual:actual;
+let converted=amount*rate;
+let incentiveAmount=converted*inc/100;
+let extraBenefit=amount/1000*extra;
+let rateBenefit=manual>0?amount*(manual-actual):0;
+let totalBenefit=extraBenefit+rateBenefit;
+let balance=converted+incentiveAmount-fee;
+let currency=$("toCurrency").value.toUpperCase();
+let labels=[
+[t("total"),money(amount)+" "+$("fromCurrency").value.toUpperCase()],
+["Actual Rate",money(actual)],
+["Manual Rate",money(manual)],
+[t("converted"),money(converted)+" "+currency],
+[t("extraResult"),money(extraBenefit)+" "+currency],
+[t("incentiveResult"),money(incentiveAmount)+" "+currency],
+[t("fee"),money(fee)+" "+currency],
+[t("benefit"),money(totalBenefit)+" "+currency],
+[t("balance"),money(balance)+" "+currency]
+];
+$("remitResults").innerHTML=labels.map((r,i)=>`<div class="result-row ${i===7?"benefit":""} ${i===8?"total":""}"><span>${r[0]}</span><strong>${r[1]}</strong></div>`).join("");
+$("calculationDetails").textContent=language==="bn"?
+`হিসাবের ধাপ:
+ব্যবহৃত Rate = ${money(rate)}
+Converted Amount = ${money(amount)} × ${money(rate)} = ${money(converted)}
+Incentive = ${money(converted)} × ${inc}% = ${money(incentiveAmount)}
+Main Balance = ${money(converted)} + ${money(incentiveAmount)} − ${money(fee)} = ${money(balance)}
+
+Benefit আলাদা:
+Extra Add = (${money(amount)} ÷ 1000) × ${money(extra)} = ${money(extraBenefit)}
+Rate Difference Benefit = ${manual>0?money(amount)+" × ("+money(manual)+" − "+money(actual)+") = "+money(rateBenefit):"0"}
+Total Benefit = ${money(extraBenefit)} + ${money(rateBenefit)} = ${money(totalBenefit)}
+Benefit Main Balance-এ যোগ হয়নি।`:
+`Applied Rate = ${money(rate)}
+Converted Amount = ${money(amount)} × ${money(rate)} = ${money(converted)}
+Incentive = ${money(converted)} × ${inc}% = ${money(incentiveAmount)}
+Main Balance = ${money(converted)} + ${money(incentiveAmount)} − ${money(fee)} = ${money(balance)}
+
+Separate Benefit:
+Extra Add = (${money(amount)} ÷ 1000) × ${money(extra)} = ${money(extraBenefit)}
+Rate Difference Benefit = ${manual>0?money(amount)+" × ("+money(manual)+" − "+money(actual)+") = "+money(rateBenefit):"0"}
+Total Benefit = ${money(extraBenefit)} + ${money(rateBenefit)} = ${money(totalBenefit)}
+Benefit is not added to Main Balance.`;
+}
+function clearRemit(){
+["amount","actualRate","manualRate","incentive","fee","extra"].forEach(id=>$(id).value=["manualRate","incentive","fee","extra"].includes(id)?"0":"");
+$("remitResults").innerHTML="";$("calculationDetails").textContent="";$("remitError").textContent="";
+}
+function copyRemit(){
+let s=[...$("remitResults").querySelectorAll(".result-row")].map(x=>x.innerText).join("\n")+"\n\n"+$("calculationDetails").textContent;
+if($("remitResults").innerHTML)copyText(s);
+}
+const pairs={QAR:"BDT",BDT:"QAR",USD:"BDT",SAR:"BDT",AED:"BDT",INR:"BDT",GBP:"BDT",EUR:"BDT",KWD:"BDT",OMR:"BDT",BHD:"BDT",PKR:"BDT",LKR:"BDT",NPR:"BDT",MYR:"BDT",SGD:"BDT",CAD:"BDT",AUD:"BDT",JPY:"BDT",CNY:"BDT"};
+$("fromCurrency").addEventListener("change",()=>{
+let f=$("fromCurrency").value.toUpperCase();$("fromCurrency").value=f;$("toCurrency").value=pairs[f]||"";calculateRemit();
+});
+$("toCurrency").addEventListener("change",()=>{
+let to=$("toCurrency").value.toUpperCase();$("toCurrency").value=to;
+let reverse=Object.keys(pairs).find(k=>pairs[k]===to);if(reverse)$("fromCurrency").value=reverse;calculateRemit();
+});
+["amount","actualRate","manualRate","incentive","fee","extra"].forEach(id=>$(id).addEventListener("input",calculateRemit));
+
+function updateLanguage(){
+let bn=language==="bn";
+document.documentElement.lang=language;
+$("calcTab").textContent=t("calc");$("remitTab").textContent=t("remit");
+$("inputTitle").textContent=t("input");$("resultTitle").textContent=t("result");
+$("amountLabel").textContent=t("amount");$("fromLabel").textContent=t("from");
+$("toLabel").textContent=t("to");$("actualLabel").textContent=t("actual");
+$("manualLabel").textContent=t("manual");$("incentiveLabel").textContent=t("incentive");
+$("feeLabel").textContent=t("fee");$("extraLabel").textContent=t("extra");
+$("clearRemit").textContent=t("clear");$("copyRemit").textContent=t("copy");
+$("copyCalc").textContent=t("copy");$("clearCalcText").textContent=t("clear");
+$("seqMode").textContent=t("seq");$("regularMode").textContent=t("regular");
+}
+$("language").addEventListener("change",()=>{
+language=$("language").value;updateLanguage();calculateRemit();
+});
+updateLanguage();updateCalc();
 </script>
 </body>
 </html>
