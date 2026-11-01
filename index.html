@@ -12,24 +12,49 @@ body{margin:0;padding:12px;background:#101827;color:#fff;font-family:Arial,sans-
 h2{text-align:center;margin:8px 0 18px}
 .top{display:flex;gap:7px;margin-bottom:14px;align-items:center}
 .top button{flex:1}
-button,select,input,textarea{font:inherit}
+button,select,input{font:inherit}
 button{cursor:pointer;border:0;border-radius:9px;padding:12px;background:#2a3b53;color:#fff}
 .active{background:#1685e8}
 .panel{background:#192538;padding:14px;border-radius:14px;margin-bottom:14px}
 .hidden{display:none!important}
 label{display:block;color:#cbd5e1;font-size:14px;margin:12px 0 6px}
-input,select,textarea{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;border:1px solid #40516a;border-radius:9px;font-size:16px}
-input:focus,textarea:focus,select:focus{outline:2px solid #1685e8}
+input,select{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;border:1px solid #40516a;border-radius:9px;font-size:16px}
+input:focus,select:focus{outline:2px solid #1685e8}
 .currency{display:flex;border:1px solid #40516a;border-radius:10px;overflow:hidden;background:#0e1929}
 .currency select{width:38%;border:0;border-right:1px solid #40516a;border-radius:0;font-size:15px}
 .currency input{flex:1;width:62%;border:0;border-radius:0;text-align:right}
-.calc-display{width:100%;height:130px;resize:vertical;text-align:right;font-size:24px;line-height:1.5;margin-bottom:12px;overflow-wrap:anywhere}
+
+/* Calculator display */
+.calc-display{
+ width:100%;
+ min-height:155px;
+ max-height:220px;
+ overflow:auto;
+ overflow-wrap:anywhere;
+ word-break:break-word;
+ white-space:pre-wrap;
+ text-align:right;
+ font-size:32px;
+ line-height:1.5;
+ margin-bottom:14px;
+ padding:18px 14px;
+ background:#fff;
+ color:#111827;
+ border:2px solid #cbd5e1;
+ border-radius:12px;
+ outline:none;
+ user-select:text;
+ -webkit-user-select:text;
+ -webkit-touch-callout:default;
+}
+.calc-display:empty:before{content:"0";color:#777}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .grid button{font-size:22px;min-height:58px;padding:10px 3px}
 .grid .op{background:#1769aa}
 .grid .eq{background:#159957}
-.grid .cross{background:#a93226;font-size:27px}
+.grid .cross{background:#a93226;padding:8px}
 .grid .ac{background:#a93226}
+.cross svg{width:30px;height:30px;display:block;margin:auto;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .result{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #34445b;font-size:14px}
 .result span{flex:1}
 .result strong{text-align:right;color:#58d68d;overflow-wrap:anywhere}
@@ -39,12 +64,25 @@ input:focus,textarea:focus,select:focus{outline:2px solid #1685e8}
 .action{width:100%;margin-top:14px;background:#1685e8}
 .clear{background:#c0392b}
 .small{color:#9eafc4;font-size:12px;margin-top:10px;line-height:1.5}
+
+/* Compact remittance settings */
+.settings-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px 10px;
+}
+.setting label{font-size:12px;margin:2px 0 5px}
+.setting input{padding:10px 8px;font-size:15px;height:42px}
+.settings-grid .action{grid-column:span 2;margin-top:3px;padding:10px}
+
 @media(max-width:380px){
  body{padding:8px}
  .panel{padding:11px}
  .grid{gap:6px}
  .grid button{min-height:53px;font-size:20px}
- .calc-display{height:120px}
+ .calc-display{min-height:145px;font-size:29px}
+ .setting label{font-size:11px}
+ .setting input{font-size:14px;padding:8px 6px}
 }
 </style>
 </head>
@@ -70,11 +108,23 @@ input:focus,textarea:focus,select:focus{outline:2px solid #1685e8}
 </select>
 
 <label id="expressionLabel">আপনার হিসাব লিখুন</label>
-<textarea id="calcDisplay" class="calc-display" placeholder="যেমন: 123456+456789" spellcheck="false">0</textarea>
+<div id="calcDisplay" class="calc-display"
+ contenteditable="true"
+ inputmode="none"
+ spellcheck="false"
+ role="textbox"
+ aria-label="Calculator display">0</div>
 
 <div class="grid">
 <button class="ac" onclick="calcClear()">AC</button>
-<button class="cross" onclick="calcDelete()">×</button>
+
+<button class="cross" onclick="calcDelete()" aria-label="Delete">
+<svg viewBox="0 0 32 32">
+<path d="M11 5H27V27H11L3 16Z"/>
+<path d="M16 12L23 20M23 12L16 20"/>
+</svg>
+</button>
+
 <button class="op" onclick="calcAdd('%')">%</button>
 <button class="op" onclick="calcAdd('/')">÷</button>
 
@@ -122,19 +172,30 @@ input:focus,textarea:focus,select:focus{outline:2px solid #1685e8}
 </div>
 
 <div class="panel">
+<div class="settings-grid">
+
+<div class="setting">
 <label id="actualLabel">Actual Currency Rate</label>
 <input id="actualRate" type="text" inputmode="decimal" autocomplete="off" value="0">
+</div>
 
+<div class="setting">
 <label id="manualLabel">Manual Rate</label>
 <input id="manualRate" type="text" inputmode="decimal" autocomplete="off" value="0">
+</div>
 
+<div class="setting">
 <label id="incentiveLabel">প্রণোদনা (%)</label>
 <input id="incentive" type="text" inputmode="decimal" autocomplete="off" value="0">
+</div>
 
+<div class="setting">
 <label>Charge</label>
 <input id="charge" type="text" inputmode="decimal" autocomplete="off" value="0">
+</div>
 
-<button id="clearButton" class="action clear" onclick="clearAll()">Clear All</button>
+<button id="clearButton" class="action clear" onclick="clearAll()">সব মুছুন</button>
+</div>
 </div>
 
 <div class="panel">
@@ -289,7 +350,6 @@ function updateRemit(source='settings'){
  const actualTotal=actualBase*factor;
  const manualTotal=manualBase*factor;
 
- // Main From/To conversion always uses Actual Rate
  if(source==='from'){
   setValue('toAmount',actualBase);
   setValue('actualConverted',actualTotal);
@@ -313,7 +373,7 @@ function updateRemit(source='settings'){
   }
  }
  else if(source==='manualConverted'){
-  // Manual result is independent; do not change the main currency amounts
+  // Manual result remains independent.
  }
  else{
   setValue('toAmount',from*actualRate);
@@ -321,11 +381,9 @@ function updateRemit(source='settings'){
   setValue('manualConverted',manualTotal);
  }
 
- // Currency display
  $('actualConvertedCurrency').value=$('toCurrency').value;
  $('manualConvertedCurrency').value=$('toCurrency').value;
 
- // Incentive amounts
  const actualIncentive=actualBase*incentive/100;
  const manualIncentive=manualBase*incentive/100;
 
@@ -334,7 +392,6 @@ function updateRemit(source='settings'){
  $('manualIncentiveAmount').textContent=fmt(manualIncentive)+' '+$('toCurrency').value;
  $('chargeResult').textContent=fmt(charge)+' '+$('fromCurrency').value;
 
- // Difference between the two converted totals, including incentive
  const benefit=n('manualConverted')-n('actualConverted');
  $('totalBenefit').textContent=fmt(benefit)+' '+$('toCurrency').value;
 }
@@ -351,7 +408,6 @@ $('manualConverted').addEventListener('input',()=>updateRemit('manualConverted')
 $('fromCurrency').addEventListener('change',()=>updateRemit('settings'));
 $('toCurrency').addEventListener('change',()=>updateRemit('settings'));
 
-/* Initial zero clears when typing starts */
 [
 'fromAmount','toAmount','actualRate','manualRate','incentive','charge',
 'actualConverted','manualConverted'
@@ -375,41 +431,73 @@ function clearAll(){
  updateRemit('settings');
 }
 
-/* Calculator: editable text area supports long expressions and paste */
+/* Calculator display and editing */
 const display=$('calcDisplay');
 
+function getDisplayText(){
+ return display.innerText.replace(/\u00a0/g,' ');
+}
+
+function setDisplayText(value){
+ display.textContent=value;
+}
+
+function placeCursorAtEnd(){
+ const range=document.createRange();
+ const selection=window.getSelection();
+ range.selectNodeContents(display);
+ range.collapse(false);
+ selection.removeAllRanges();
+ selection.addRange(range);
+}
+
 function calcAdd(value){
- if(display.value==='Error')display.value='';
- if(display.value==='0'&&/^\d+$/.test(value))display.value='';
- const start=display.selectionStart;
- const end=display.selectionEnd;
- const old=display.value;
- display.value=old.slice(0,start)+value+old.slice(end);
- const pos=start+value.length;
- display.setSelectionRange(pos,pos);
- display.focus();
-}
-function calcClear(){
- display.value='0';
- display.focus();
-}
-function calcDelete(){
- const start=display.selectionStart;
- const end=display.selectionEnd;
- let value=display.value;
- if(start!==end){
-  display.value=value.slice(0,start)+value.slice(end);
-  display.setSelectionRange(start,start);
- }else if(start>0){
-  display.value=value.slice(0,start-1)+value.slice(end);
-  display.setSelectionRange(start-1,start-1);
+ let text=getDisplayText();
+ if(text==='Error')text='';
+ if(text==='0'&&/^\d+$/.test(value))text='';
+
+ const selection=window.getSelection();
+ let start=0,end=0;
+
+ if(selection.rangeCount && display.contains(selection.anchorNode)){
+  const range=selection.getRangeAt(0);
+  const pre=range.cloneRange();
+  pre.selectNodeContents(display);
+  pre.setEnd(range.startContainer,range.startOffset);
+  start=pre.toString().length;
+  const preEnd=range.cloneRange();
+  preEnd.selectNodeContents(display);
+  preEnd.setEnd(range.endContainer,range.endOffset);
+  end=preEnd.toString().length;
+ }else{
+  start=end=text.length;
  }
- display.focus();
+
+ setDisplayText(text.slice(0,start)+value+text.slice(end));
+ display.focus({preventScroll:true});
+ placeCursorAtEnd();
+}
+
+function calcClear(){
+ setDisplayText('0');
+ display.focus({preventScroll:true});
+ placeCursorAtEnd();
+}
+
+function calcDelete(){
+ const text=getDisplayText();
+ if(text==='Error'||text==='0'){
+  setDisplayText('0');
+  return;
+ }
+ setDisplayText(text.slice(0,-1)||'0');
+ display.focus({preventScroll:true});
+ placeCursorAtEnd();
 }
 
 function calculate(){
  try{
-  let exp=display.value.replace(/,/g,'').replace(/\s/g,'');
+  let exp=getDisplayText().replace(/,/g,'').replace(/\s/g,'');
   if(!exp||exp==='0')return;
   if(!/^[0-9+\-*/().%]+$/.test(exp))throw Error('Invalid');
 
@@ -451,10 +539,11 @@ function calculate(){
   }
 
   if(!Number.isFinite(result))throw Error('Invalid');
-  display.value=Number(result.toFixed(8)).toString();
-  display.setSelectionRange(display.value.length,display.value.length);
+  setDisplayText(Number(result.toFixed(8)).toString());
+  display.focus({preventScroll:true});
+  placeCursorAtEnd();
  }catch(e){
-  display.value='Error';
+  setDisplayText('Error');
  }
 }
 
