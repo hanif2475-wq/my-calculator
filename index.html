@@ -7,35 +7,45 @@
 <title>Calculator & Remittance</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:14px;background:#101827;color:#fff;font-family:Arial,sans-serif}
-.container{max-width:520px;margin:auto}
-h2{text-align:center}
-.top{display:flex;gap:8px;margin-bottom:14px}
-button,select,input{font:inherit}
-button{cursor:pointer;border:0;border-radius:9px;padding:12px;background:#2a3b53;color:#fff}
+body{margin:0;padding:12px;background:#101827;color:#fff;font-family:Arial,sans-serif}
+.container{max-width:560px;margin:auto}
+h2{text-align:center;margin:8px 0 18px}
+.top{display:flex;gap:7px;margin-bottom:14px;align-items:center}
 .top button{flex:1}
+button,select,input,textarea{font:inherit}
+button{cursor:pointer;border:0;border-radius:9px;padding:12px;background:#2a3b53;color:#fff}
 .active{background:#1685e8}
 .panel{background:#192538;padding:14px;border-radius:14px;margin-bottom:14px}
 .hidden{display:none!important}
 label{display:block;color:#cbd5e1;font-size:14px;margin:12px 0 6px}
-input,select{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;border:1px solid #40516a;border-radius:9px;font-size:16px}
+input,select,textarea{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;border:1px solid #40516a;border-radius:9px;font-size:16px}
+input:focus,textarea:focus,select:focus{outline:2px solid #1685e8}
 .currency{display:flex;border:1px solid #40516a;border-radius:10px;overflow:hidden;background:#0e1929}
 .currency select{width:38%;border:0;border-right:1px solid #40516a;border-radius:0;font-size:15px}
 .currency input{flex:1;width:62%;border:0;border-radius:0;text-align:right}
+.calc-display{width:100%;height:130px;resize:vertical;text-align:right;font-size:24px;line-height:1.5;margin-bottom:12px;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.grid button{font-size:22px;min-height:58px;padding:10px 3px}
+.grid .op{background:#1769aa}
+.grid .eq{background:#159957}
+.grid .cross{background:#a93226;font-size:27px}
+.grid .ac{background:#a93226}
 .result{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #34445b;font-size:14px}
 .result span{flex:1}
 .result strong{text-align:right;color:#58d68d;overflow-wrap:anywhere}
 .result-input{display:flex;gap:7px;align-items:stretch}
-.result-input input{flex:1}
-.result-input select{width:95px}
+.result-input input{flex:1;text-align:right}
+.result-input select{width:90px}
 .action{width:100%;margin-top:14px;background:#1685e8}
 .clear{background:#c0392b}
-.calc-display{text-align:right;font-size:26px;margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.grid button{font-size:20px;padding:16px 4px}
-.op{background:#1769aa}
-.eq{background:#159957}
-.small{color:#9eafc4;font-size:12px;margin-top:10px}
+.small{color:#9eafc4;font-size:12px;margin-top:10px;line-height:1.5}
+@media(max-width:380px){
+ body{padding:8px}
+ .panel{padding:11px}
+ .grid{gap:6px}
+ .grid button{min-height:53px;font-size:20px}
+ .calc-display{height:120px}
+}
 </style>
 </head>
 <body>
@@ -45,39 +55,65 @@ input,select{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;b
 <div class="top">
 <button id="calcTab" class="active" onclick="showTab('calc')">Calculator</button>
 <button id="remitTab" onclick="showTab('remit')">Remittance</button>
-<select id="language" style="width:100px" onchange="setLanguage(this.value)">
+<select id="language" style="width:105px" onchange="setLanguage(this.value)">
 <option value="bn">বাংলা</option>
 <option value="en">English</option>
 </select>
 </div>
 
+<!-- CALCULATOR -->
 <div id="calcPanel" class="panel">
 <label id="modeLabel">হিসাবের নিয়ম</label>
 <select id="calcMode">
 <option value="regular">Regular (BODMAS)</option>
 <option value="sequential">Sequential</option>
 </select>
-<input id="calcDisplay" class="calc-display" value="0" readonly>
+
+<label id="expressionLabel">আপনার হিসাব লিখুন</label>
+<textarea id="calcDisplay" class="calc-display" placeholder="যেমন: 123456+456789" spellcheck="false">0</textarea>
+
 <div class="grid">
-<button class="clear" onclick="calcClear()">AC</button>
-<button onclick="calcDelete()">DEL</button>
-<button onclick="calcAdd('%')">%</button>
+<button class="ac" onclick="calcClear()">AC</button>
+<button class="cross" onclick="calcDelete()">×</button>
+<button class="op" onclick="calcAdd('%')">%</button>
 <button class="op" onclick="calcAdd('/')">÷</button>
-<button onclick="calcAdd('7')">7</button><button onclick="calcAdd('8')">8</button><button onclick="calcAdd('9')">9</button><button class="op" onclick="calcAdd('*')">×</button>
-<button onclick="calcAdd('4')">4</button><button onclick="calcAdd('5')">5</button><button onclick="calcAdd('6')">6</button><button class="op" onclick="calcAdd('-')">−</button>
-<button onclick="calcAdd('1')">1</button><button onclick="calcAdd('2')">2</button><button onclick="calcAdd('3')">3</button><button class="op" onclick="calcAdd('+')">+</button>
-<button onclick="calcAdd('(')">(</button><button onclick="calcAdd('0')">0</button><button onclick="calcAdd('.')">.</button><button onclick="calcAdd(')')">)</button>
-<button onclick="calcCopy()">Copy</button><button class="clear" onclick="calcClear()">Clear</button><button class="eq" style="grid-column:span 2" onclick="calculate()">=</button>
+
+<button onclick="calcAdd('1')">1</button>
+<button onclick="calcAdd('2')">2</button>
+<button onclick="calcAdd('3')">3</button>
+<button class="op" onclick="calcAdd('*')">×</button>
+
+<button onclick="calcAdd('4')">4</button>
+<button onclick="calcAdd('5')">5</button>
+<button onclick="calcAdd('6')">6</button>
+<button class="op" onclick="calcAdd('-')">−</button>
+
+<button onclick="calcAdd('7')">7</button>
+<button onclick="calcAdd('8')">8</button>
+<button onclick="calcAdd('9')">9</button>
+<button class="op" onclick="calcAdd('+')">+</button>
+
+<button onclick="calcAdd('00')">00</button>
+<button onclick="calcAdd('0')">0</button>
+<button onclick="calcAdd('000')">000</button>
+<button class="op" onclick="calcAdd('.')">.</button>
+
+<button onclick="calcAdd('(')">(</button>
+<button onclick="calcAdd(')')">)</button>
+<button class="eq" style="grid-column:span 2" onclick="calculate()">=</button>
 </div>
 </div>
 
+<!-- REMITTANCE -->
 <div id="remitPanel" class="hidden">
+
 <div class="panel">
 <label id="fromLabel">From Currency & Amount</label>
 <div class="currency">
 <select id="fromCurrency"></select>
 <input id="fromAmount" type="text" inputmode="decimal" autocomplete="off" value="0">
 </div>
+
 <label id="toLabel">To Currency & Amount</label>
 <div class="currency">
 <select id="toCurrency"></select>
@@ -87,79 +123,117 @@ input,select{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;b
 
 <div class="panel">
 <label id="actualLabel">Actual Currency Rate</label>
-<input id="actualRate" type="text" inputmode="decimal" value="0" autocomplete="off">
+<input id="actualRate" type="text" inputmode="decimal" autocomplete="off" value="0">
+
 <label id="manualLabel">Manual Rate</label>
-<input id="manualRate" type="text" inputmode="decimal" value="0" autocomplete="off">
+<input id="manualRate" type="text" inputmode="decimal" autocomplete="off" value="0">
+
 <label id="incentiveLabel">প্রণোদনা (%)</label>
-<input id="incentive" type="text" inputmode="decimal" value="0" autocomplete="off">
+<input id="incentive" type="text" inputmode="decimal" autocomplete="off" value="0">
+
 <label>Charge</label>
-<input id="charge" type="text" inputmode="decimal" value="0" autocomplete="off">
+<input id="charge" type="text" inputmode="decimal" autocomplete="off" value="0">
+
 <button id="clearButton" class="action clear" onclick="clearAll()">Clear All</button>
 </div>
 
 <div class="panel">
-<div class="result"><span id="totalChargeLabel">Total Convert Amount with Charge</span><strong id="totalWithCharge">0 QAR</strong></div>
-
-<label id="convertedLabel">Total Converted Amount with Incentive</label>
-<div class="result-input">
-<input id="convertedWithIncentive" type="text" inputmode="decimal" autocomplete="off" value="0">
-<select id="convertedCurrency" aria-label="Converted currency"></select>
+<div class="result">
+<span id="totalChargeLabel">Total Convert Amount with Charge</span>
+<strong id="totalWithCharge">0 QAR</strong>
 </div>
 
-<div class="result"><span id="incentiveAmountLabel">Incentive Amount</span><strong id="incentiveAmount">0 BDT</strong></div>
-<div class="result"><span>Charge</span><strong id="chargeResult">0 QAR</strong></div>
-<div class="result"><span id="withIncentiveLabel">Benefit with Incentive</span><strong id="benefitWithIncentive">0 BDT</strong></div>
-<div class="result"><span id="withoutIncentiveLabel">Benefit without Incentive</span><strong id="benefitWithoutIncentive">0 BDT</strong></div>
-<div class="result"><span id="totalBenefitLabel">Total Benefit</span><strong id="totalBenefit">0 BDT</strong></div>
-<div class="small" id="note">মূল From/To হিসাব Actual Rate অনুযায়ী হবে। Benefit-এর হিসাব Manual Rate থাকলে সেটি দিয়ে হবে।</div>
+<label id="actualConvertedLabel">Total Converted Amount with Incentive (Actual)</label>
+<div class="result-input">
+<input id="actualConverted" type="text" inputmode="decimal" autocomplete="off" value="0">
+<select id="actualConvertedCurrency"></select>
+</div>
+
+<label id="manualConvertedLabel">Total Manual Amount with Incentive</label>
+<div class="result-input">
+<input id="manualConverted" type="text" inputmode="decimal" autocomplete="off" value="0">
+<select id="manualConvertedCurrency"></select>
+</div>
+
+<div class="result">
+<span id="actualIncentiveLabel">Incentive Amount (Actual Rate)</span>
+<strong id="actualIncentiveAmount">0 BDT</strong>
+</div>
+
+<div class="result">
+<span id="manualIncentiveLabel">Incentive Amount (Manual Rate)</span>
+<strong id="manualIncentiveAmount">0 BDT</strong>
+</div>
+
+<div class="result">
+<span id="chargeResultLabel">Charge</span>
+<strong id="chargeResult">0 QAR</strong>
+</div>
+
+<div class="result">
+<span id="totalBenefitLabel">Total Benefit</span>
+<strong id="totalBenefit">0 BDT</strong>
+</div>
+
+<div class="small" id="note">
+Actual Rate ও Manual Rate-এর হিসাব আলাদা। Total Benefit = Manual Amount with Incentive − Actual Amount with Incentive।
+</div>
 </div>
 </div>
 </div>
 
 <script>
-const currencies=['BDT','QAR','USD','SAR','AED','INR','GBP','EUR','KWD','OMR','BHD','PKR'];
 const $=id=>document.getElementById(id);
-const ids=['fromAmount','toAmount','actualRate','manualRate','incentive','charge','convertedWithIncentive'];
-let lang='bn',lastEdit='from',calcExpression='';
+const currencies=['BDT','QAR','USD','SAR','AED','INR','GBP','EUR','KWD','OMR','BHD','PKR'];
 
-['fromCurrency','toCurrency','convertedCurrency'].forEach(id=>{
+['fromCurrency','toCurrency','actualConvertedCurrency','manualConvertedCurrency'].forEach(id=>{
  currencies.forEach(c=>$(id).add(new Option(c,c)));
 });
+
 $('fromCurrency').value='QAR';
 $('toCurrency').value='BDT';
-$('convertedCurrency').value='BDT';
+$('actualConvertedCurrency').value='BDT';
+$('manualConvertedCurrency').value='BDT';
 
-const translations={
+const T={
 bn:{
-headingCalc:'ক্যালকুলেটর',headingRemit:'রেমিট্যান্স ক্যালকুলেটর',
+calc:'ক্যালকুলেটর',remit:'রেমিট্যান্স ক্যালকুলেটর',
+mode:'হিসাবের নিয়ম',expression:'আপনার হিসাব লিখুন',
 from:'From Currency & Amount',to:'To Currency & Amount',
 actual:'Actual Currency Rate',manual:'Manual Rate',
 incentive:'প্রণোদনা (%)',clear:'সব মুছুন',
 totalCharge:'Total Convert Amount with Charge',
-converted:'Total Converted Amount with Incentive',
-incentiveAmount:'Incentive Amount',
-with:'প্রণোদনাসহ Benefit',without:'প্রণোদনা ছাড়া Benefit',
-total:'Total Benefit',mode:'হিসাবের নিয়ম',
-note:'মূল From/To হিসাব Actual Rate অনুযায়ী হবে। Benefit-এর হিসাব Manual Rate থাকলে সেটি দিয়ে হবে।'
+actualConverted:'Total Converted Amount with Incentive (Actual)',
+manualConverted:'Total Manual Amount with Incentive',
+actualInc:'Incentive Amount (Actual Rate)',
+manualInc:'Incentive Amount (Manual Rate)',
+charge:'Charge',totalBenefit:'Total Benefit',
+note:'Actual Rate ও Manual Rate-এর হিসাব আলাদা। Total Benefit = Manual Amount with Incentive − Actual Amount with Incentive।'
 },
 en:{
-headingCalc:'Calculator',headingRemit:'Remittance Calculator',
+calc:'Calculator',remit:'Remittance Calculator',
+mode:'Calculation Mode',expression:'Enter your calculation',
 from:'From Currency & Amount',to:'To Currency & Amount',
 actual:'Actual Currency Rate',manual:'Manual Rate',
 incentive:'Incentive (%)',clear:'Clear All',
 totalCharge:'Total Convert Amount with Charge',
-converted:'Total Converted Amount with Incentive',
-incentiveAmount:'Incentive Amount',
-with:'Benefit with Incentive',without:'Benefit without Incentive',
-total:'Total Benefit',mode:'Calculation Mode',
-note:'From/To conversion uses Actual Rate. Benefits use Manual Rate when entered.'
+actualConverted:'Total Converted Amount with Incentive (Actual)',
+manualConverted:'Total Manual Amount with Incentive',
+actualInc:'Incentive Amount (Actual Rate)',
+manualInc:'Incentive Amount (Manual Rate)',
+charge:'Charge',totalBenefit:'Total Benefit',
+note:'Actual Rate and Manual Rate calculations are separate. Total Benefit = Manual Amount with Incentive − Actual Amount with Incentive.'
 }
 };
 
-function setLanguage(value){
- lang=value;
- const t=translations[lang];
- $('heading').textContent=$('remitPanel').classList.contains('hidden')?t.headingCalc:t.headingRemit;
+let language='bn';
+
+function setLanguage(v){
+ language=v;
+ const t=T[v];
+ $('heading').textContent=$('calcPanel').classList.contains('hidden')?t.remit:t.calc;
+ $('modeLabel').textContent=t.mode;
+ $('expressionLabel').textContent=t.expression;
  $('fromLabel').textContent=t.from;
  $('toLabel').textContent=t.to;
  $('actualLabel').textContent=t.actual;
@@ -167,93 +241,121 @@ function setLanguage(value){
  $('incentiveLabel').textContent=t.incentive;
  $('clearButton').textContent=t.clear;
  $('totalChargeLabel').textContent=t.totalCharge;
- $('convertedLabel').textContent=t.converted;
- $('incentiveAmountLabel').textContent=t.incentiveAmount;
- $('withIncentiveLabel').textContent=t.with;
- $('withoutIncentiveLabel').textContent=t.without;
- $('totalBenefitLabel').textContent=t.total;
- $('modeLabel').textContent=t.mode;
+ $('actualConvertedLabel').textContent=t.actualConverted;
+ $('manualConvertedLabel').textContent=t.manualConverted;
+ $('actualIncentiveLabel').textContent=t.actualInc;
+ $('manualIncentiveLabel').textContent=t.manualInc;
+ $('chargeResultLabel').textContent=t.charge;
+ $('totalBenefitLabel').textContent=t.totalBenefit;
  $('note').textContent=t.note;
 }
 
 function showTab(tab){
- const isCalc=tab==='calc';
- $('calcPanel').classList.toggle('hidden',!isCalc);
- $('remitPanel').classList.toggle('hidden',isCalc);
- $('calcTab').classList.toggle('active',isCalc);
- $('remitTab').classList.toggle('active',!isCalc);
- $('heading').textContent=isCalc?translations[lang].headingCalc:translations[lang].headingRemit;
+ const calc=tab==='calc';
+ $('calcPanel').classList.toggle('hidden',!calc);
+ $('remitPanel').classList.toggle('hidden',calc);
+ $('calcTab').classList.toggle('active',calc);
+ $('remitTab').classList.toggle('active',!calc);
+ $('heading').textContent=calc?T[language].calc:T[language].remit;
 }
 
-function cleanNumber(id){
+/* Number helpers */
+function n(id){
  let v=$(id).value.replace(/,/g,'').trim();
- if(v===''||v==='-'||v==='.')return 0;
- const n=Number(v);
- return Number.isFinite(n)?n:0;
+ if(!v||v==='-'||v==='.')return 0;
+ let x=Number(v);
+ return Number.isFinite(x)?x:0;
 }
-function fmt(n){
- if(!Number.isFinite(n))return '0';
- return n.toLocaleString('en-US',{maximumFractionDigits:4,useGrouping:true});
+function fmt(x){
+ if(!Number.isFinite(x))return '0';
+ return x.toLocaleString('en-US',{maximumFractionDigits:4,useGrouping:true});
 }
-function put(id,n){
- if(document.activeElement!==$(id))$(id).value=fmt(n);
+function setValue(id,x){
+ if(document.activeElement!==$(id))$(id).value=fmt(x);
 }
+
+/* Remittance calculations */
 function updateRemit(source='settings'){
- const from=cleanNumber('fromAmount');
- const actual=cleanNumber('actualRate');
- const manual=cleanNumber('manualRate');
- const incentive=cleanNumber('incentive');
- const charge=cleanNumber('charge');
- const rate=manual>0?manual:actual;
+ const from=n('fromAmount');
+ const actualRate=n('actualRate');
+ const manualRate=n('manualRate');
+ const incentive=n('incentive');
+ const charge=n('charge');
  const factor=1+incentive/100;
 
+ const actualBase=from*actualRate;
+ const manualBase=from*manualRate;
+
+ const actualTotal=actualBase*factor;
+ const manualTotal=manualBase*factor;
+
+ // Main From/To conversion always uses Actual Rate
  if(source==='from'){
-  put('toAmount',from*actual);
-  put('convertedWithIncentive',from*rate*factor);
- }else if(source==='to'){
-  put('fromAmount',actual>0?cleanNumber('toAmount')/actual:0);
-  put('convertedWithIncentive',cleanNumber('fromAmount')*rate*factor);
- }else if(source==='converted'){
-  const target=cleanNumber('convertedWithIncentive');
-  const divisor=actual*factor;
+  setValue('toAmount',actualBase);
+  setValue('actualConverted',actualTotal);
+  setValue('manualConverted',manualTotal);
+ }
+ else if(source==='to'){
+  const to=n('toAmount');
+  const newFrom=actualRate>0?to/actualRate:0;
+  setValue('fromAmount',newFrom);
+  setValue('actualConverted',newFrom*actualRate*factor);
+  setValue('manualConverted',newFrom*manualRate*factor);
+ }
+ else if(source==='actualConverted'){
+  const target=n('actualConverted');
+  const divisor=actualRate*factor;
   if(divisor>0){
-   put('fromAmount',target/divisor);
-   put('toAmount',target);
+   const newFrom=target/divisor;
+   setValue('fromAmount',newFrom);
+   setValue('toAmount',newFrom*actualRate);
+   setValue('manualConverted',newFrom*manualRate*factor);
   }
- }else{
-  put('toAmount',from*actual);
-  put('convertedWithIncentive',from*rate*factor);
+ }
+ else if(source==='manualConverted'){
+  // Manual result is independent; do not change the main currency amounts
+ }
+ else{
+  setValue('toAmount',from*actualRate);
+  setValue('actualConverted',actualTotal);
+  setValue('manualConverted',manualTotal);
  }
 
- const amount=cleanNumber('fromAmount');
- const difference=manual>0?amount*(manual-actual):0;
- const base=amount*rate;
- const incentiveValue=base*incentive/100;
- const benefitWith=difference*(1+incentive/100);
- const benefitWithout=difference;
+ // Currency display
+ $('actualConvertedCurrency').value=$('toCurrency').value;
+ $('manualConvertedCurrency').value=$('toCurrency').value;
 
- $('totalWithCharge').textContent=fmt(amount+charge)+' '+$('fromCurrency').value;
- $('convertedCurrency').value=$('toCurrency').value;
- $('incentiveAmount').textContent=fmt(incentiveValue)+' '+$('toCurrency').value;
+ // Incentive amounts
+ const actualIncentive=actualBase*incentive/100;
+ const manualIncentive=manualBase*incentive/100;
+
+ $('totalWithCharge').textContent=fmt(from+charge)+' '+$('fromCurrency').value;
+ $('actualIncentiveAmount').textContent=fmt(actualIncentive)+' '+$('toCurrency').value;
+ $('manualIncentiveAmount').textContent=fmt(manualIncentive)+' '+$('toCurrency').value;
  $('chargeResult').textContent=fmt(charge)+' '+$('fromCurrency').value;
- $('benefitWithIncentive').textContent=fmt(benefitWith)+' '+$('toCurrency').value;
- $('benefitWithoutIncentive').textContent=fmt(benefitWithout)+' '+$('toCurrency').value;
- $('totalBenefit').textContent=fmt(benefitWith)+' '+$('toCurrency').value;
+
+ // Difference between the two converted totals, including incentive
+ const benefit=n('manualConverted')-n('actualConverted');
+ $('totalBenefit').textContent=fmt(benefit)+' '+$('toCurrency').value;
 }
 
 $('fromAmount').addEventListener('input',()=>updateRemit('from'));
 $('toAmount').addEventListener('input',()=>updateRemit('to'));
-$('convertedWithIncentive').addEventListener('input',()=>updateRemit('converted'));
+$('actualConverted').addEventListener('input',()=>updateRemit('actualConverted'));
+$('manualConverted').addEventListener('input',()=>updateRemit('manualConverted'));
+
 ['actualRate','manualRate','incentive','charge'].forEach(id=>{
  $(id).addEventListener('input',()=>updateRemit('settings'));
 });
-$('fromCurrency').addEventListener('change',()=>updateRemit('settings'));
-$('toCurrency').addEventListener('change',()=>{
- $('convertedCurrency').value=$('toCurrency').value;
- updateRemit('settings');
-});
 
-ids.forEach(id=>{
+$('fromCurrency').addEventListener('change',()=>updateRemit('settings'));
+$('toCurrency').addEventListener('change',()=>updateRemit('settings'));
+
+/* Initial zero clears when typing starts */
+[
+'fromAmount','toAmount','actualRate','manualRate','incentive','charge',
+'actualConverted','manualConverted'
+].forEach(id=>{
  $(id).addEventListener('focus',()=>{
   if($(id).value==='0')$(id).value='';
  });
@@ -264,65 +366,96 @@ ids.forEach(id=>{
 });
 
 function clearAll(){
- ids.forEach(id=>$(id).value='0');
+ [
+'fromAmount','toAmount','actualRate','manualRate','incentive','charge',
+'actualConverted','manualConverted'
+ ].forEach(id=>$(id).value='0');
  $('fromCurrency').value='QAR';
  $('toCurrency').value='BDT';
- $('convertedCurrency').value='BDT';
  updateRemit('settings');
 }
 
-/* Calculator */
-function calcAdd(v){
- if($('calcDisplay').value==='Error')calcClear();
- if($('calcDisplay').value==='0'&&/^\d$/.test(v))calcExpression='';
- calcExpression+=v;
- $('calcDisplay').value=calcExpression||'0';
+/* Calculator: editable text area supports long expressions and paste */
+const display=$('calcDisplay');
+
+function calcAdd(value){
+ if(display.value==='Error')display.value='';
+ if(display.value==='0'&&/^\d+$/.test(value))display.value='';
+ const start=display.selectionStart;
+ const end=display.selectionEnd;
+ const old=display.value;
+ display.value=old.slice(0,start)+value+old.slice(end);
+ const pos=start+value.length;
+ display.setSelectionRange(pos,pos);
+ display.focus();
 }
-function calcClear(){calcExpression='';$('calcDisplay').value='0'}
+function calcClear(){
+ display.value='0';
+ display.focus();
+}
 function calcDelete(){
- calcExpression=calcExpression.slice(0,-1);
- $('calcDisplay').value=calcExpression||'0';
+ const start=display.selectionStart;
+ const end=display.selectionEnd;
+ let value=display.value;
+ if(start!==end){
+  display.value=value.slice(0,start)+value.slice(end);
+  display.setSelectionRange(start,start);
+ }else if(start>0){
+  display.value=value.slice(0,start-1)+value.slice(end);
+  display.setSelectionRange(start-1,start-1);
+ }
+ display.focus();
 }
+
 function calculate(){
  try{
-  if(!calcExpression)return;
-  if(!/^[0-9+\-*/().% ]+$/.test(calcExpression))throw Error();
-  let exp=calcExpression.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)');
+  let exp=display.value.replace(/,/g,'').replace(/\s/g,'');
+  if(!exp||exp==='0')return;
+  if(!/^[0-9+\-*/().%]+$/.test(exp))throw Error('Invalid');
+
+  exp=exp.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)');
   let result;
+
   if($('calcMode').value==='regular'){
    result=Function('"use strict";return ('+exp+')')();
   }else{
    const tokens=exp.match(/\d+(?:\.\d+)?|[()+\-*/]/g);
-   if(!tokens||tokens.join('')!==exp.replace(/\s/g,''))throw Error();
+   if(!tokens||tokens.join('')!==exp)throw Error('Invalid');
    let i=0;
    function atom(){
     let t=tokens[i++];
-    if(t==='('){let v=expr();if(tokens[i++]!==')')throw Error();return v;}
+    if(t==='('){
+     let v=expr();
+     if(tokens[i++]!==')')throw Error('Invalid');
+     return v;
+    }
     if(t==='-')return -atom();
     if(t==='+')return atom();
-    if(!t||isNaN(Number(t)))throw Error();
+    if(!t||isNaN(Number(t)))throw Error('Invalid');
     return Number(t);
    }
    function expr(){
     let v=atom();
     while(i<tokens.length&&tokens[i]!==')'){
-     const op=tokens[i++],b=atom();
-     if(op==='+')v+=b;else if(op==='-')v-=b;
-     else if(op==='*')v*=b;else if(op==='/')v/=b;else throw Error();
+     let op=tokens[i++],b=atom();
+     if(op==='+')v+=b;
+     else if(op==='-')v-=b;
+     else if(op==='*')v*=b;
+     else if(op==='/')v/=b;
+     else throw Error('Invalid');
     }
     return v;
    }
    result=expr();
-   if(i!==tokens.length)throw Error();
+   if(i!==tokens.length)throw Error('Invalid');
   }
-  if(!Number.isFinite(result))throw Error();
-  $('calcDisplay').value=Number(result.toFixed(8)).toString();
-  calcExpression=$('calcDisplay').value;
- }catch(e){$('calcDisplay').value='Error';calcExpression='';}
-}
-function calcCopy(){
- if(navigator.clipboard&&$('calcDisplay').value!=='Error')
-  navigator.clipboard.writeText($('calcDisplay').value).catch(()=>{});
+
+  if(!Number.isFinite(result))throw Error('Invalid');
+  display.value=Number(result.toFixed(8)).toString();
+  display.setSelectionRange(display.value.length,display.value.length);
+ }catch(e){
+  display.value='Error';
+ }
 }
 
 setLanguage('bn');
