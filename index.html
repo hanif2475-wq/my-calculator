@@ -102,8 +102,12 @@ input:focus,select:focus{outline:2px solid #1685e8}
 
 /* Custom numeric keypad */
 .remit-keypad{
+ position:sticky;
+ bottom:8px;
+ z-index:20;
  background:#fff;color:#111;border:1px solid #ddd;
  border-radius:12px;padding:10px;margin-bottom:14px;
+ box-shadow:0 3px 15px #0002;
 }
 .remit-keypad-title{font-size:14px;margin-bottom:8px}
 .remit-keys{
@@ -112,6 +116,7 @@ input:focus,select:focus{outline:2px solid #1685e8}
 .remit-keys button{
  background:#f2f2f2;color:#111;border:1px solid #ddd;
  font-size:21px;min-height:48px;padding:8px;
+ touch-action:manipulation;
 }
 .remit-keys button:active{background:#ddd}
 .remit-keys .done{background:#1685e8;color:#fff}
@@ -368,9 +373,7 @@ function showTab(tab){
  $('remitTab').classList.toggle('active',!calc);
  $('heading').textContent=calc?T[language].calc:T[language].remit;
 
- if(calc){
-  hideRemitKeypad();
- }
+ if(calc)hideRemitKeypad();
 }
 
 /* Remittance calculations */
@@ -450,32 +453,6 @@ $('manualConverted').addEventListener('input',()=>updateRemit('manualConverted')
 $('fromCurrency').addEventListener('change',()=>updateRemit('settings'));
 $('toCurrency').addEventListener('change',()=>updateRemit('settings'));
 
-[
-'fromAmount','toAmount','actualRate','manualRate','incentive','charge',
-'actualConverted','manualConverted'
-].forEach(id=>{
- $(id).addEventListener('focus',()=>{
-  if($(id).value==='0')$(id).value='';
- });
- $(id).addEventListener('blur',()=>{
-  if($(id).value.trim()==='')$(id).value='0';
-  updateRemit('settings');
- });
-});
-
-function clearAll(){
- [
-'fromAmount','toAmount','actualRate','manualRate','incentive','charge',
-'actualConverted','manualConverted'
- ].forEach(id=>$(id).value='0');
-
- $('fromCurrency').value='QAR';
- $('toCurrency').value='BDT';
- hideRemitKeypad();
- activeNumericField=null;
- updateRemit('settings');
-}
-
 /* Custom numeric keypad */
 const numericFields=[
  'fromAmount','toAmount','actualRate','manualRate',
@@ -483,18 +460,22 @@ const numericFields=[
 ];
 
 let activeNumericField=null;
+let keypadOpen=false;
 
 function hideRemitKeypad(){
+ keypadOpen=false;
  $('remitKeypad').classList.add('hidden');
 }
 
 numericFields.forEach(id=>{
  const field=$(id);
+
  field.setAttribute('inputmode','none');
  field.setAttribute('autocomplete','off');
 
  field.addEventListener('focus',()=>{
   activeNumericField=field;
+  keypadOpen=true;
   $('remitKeypad').classList.remove('hidden');
 
   const label=field.closest('.currency,.setting,.result-input')
@@ -502,27 +483,42 @@ numericFields.forEach(id=>{
 
   $('keypadTitle').textContent=
     label?.textContent?.trim() || 'সংখ্যা লিখুন';
+
+  setTimeout(()=>{
+   if(keypadOpen){
+    $('remitKeypad').scrollIntoView({
+     behavior:'smooth',
+     block:'nearest'
+    });
+   }
+  },150);
+ });
+
+ field.addEventListener('blur',()=>{
+  /* কাস্টম কিবোর্ড ব্যবহার করার সময় হিসাব রিসেট হবে না */
+  if(keypadOpen && activeNumericField===field)return;
+
+  if(field.value.trim()==='')field.value='0';
+  updateRemit('settings');
  });
 });
 
-$('remitKeypad').addEventListener('mousedown',e=>{
- if(e.target.closest('button'))e.preventDefault();
-});
-
+/* Keypad button click */
 $('remitKeypad').addEventListener('click',e=>{
  const button=e.target.closest('button[data-key]');
- if(!button||!activeNumericField)return;
+ if(!button || !activeNumericField)return;
 
  const field=activeNumericField;
  const key=button.dataset.key;
- let value=field.value;
 
  if(key==='done'){
   hideRemitKeypad();
-  field.blur();
   activeNumericField=null;
+  field.blur();
   return;
  }
+
+ let value=field.value;
 
  if(key==='clear'){
   field.value='';
@@ -531,7 +527,8 @@ $('remitKeypad').addEventListener('click',e=>{
  }else if(key==='.'){
   if(!value.includes('.'))field.value=value+'.';
  }else{
-  field.value=(value==='0'?'':value)+key;
+  if(value==='0')value='';
+  field.value=value+key;
  }
 
  field.dispatchEvent(new Event('input',{bubbles:true}));
