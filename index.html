@@ -21,7 +21,7 @@ input,select{width:100%;min-width:0;padding:12px;background:#0e1929;color:#fff;b
 input:focus,select:focus{outline:2px solid #1685e8}
 .currency{display:flex;border:1px solid #40516a;border-radius:10px;overflow:hidden;background:#0e1929}
 .currency select{width:38%;border:0;border-right:1px solid #40516a;border-radius:0;font-size:15px}
-.currency input{flex:1;width:62%;border:0;border-radius:0;text-align:right}
+.currency input{flex:1;width:62%;border:0;border-radius:0;text-align:right;touch-action:manipulation;user-select:text;-webkit-user-select:text}
 .currency input[readonly]{background:#f5f7fa;color:#333}
 #calcPanel{background:#fff;color:#111;padding:14px;border:1px solid #ddd;box-shadow:0 3px 14px #0002}
 #calcPanel label{color:#333}
@@ -45,7 +45,7 @@ input:focus,select:focus{outline:2px solid #1685e8}
 .small{color:#555;font-size:12px;margin-top:10px;line-height:1.5}
 .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
 .setting label{font-size:12px;margin:2px 0 5px}
-.setting input{padding:10px 8px;font-size:15px;height:42px}
+.setting input{padding:10px 8px;font-size:15px;height:42px;touch-action:manipulation;user-select:text;-webkit-user-select:text}
 .settings-grid .action{grid-column:span 2;margin-top:3px;padding:10px}
 #remitPanel .panel,#stockPanel .panel{background:#fff;color:#111;border:1px solid #ddd;box-shadow:0 3px 14px #0001}
 #remitPanel label,#stockPanel label{color:#333}
@@ -230,6 +230,7 @@ stockNote:'This is a calculation aid, not a QSE or broker transaction. Enter the
 }
 };
 let language='bn';
+
 function setLanguage(v){
 language=v;const t=T[v];
 $('heading').textContent=$('calcPanel').classList.contains('hidden')?($('remitPanel').classList.contains('hidden')?t.stock:t.remit):t.calc;
@@ -245,6 +246,7 @@ const map={stockTitle:'stockTitle',stockIntro:'stockIntro',companyLabel:'company
 Object.keys(map).forEach(id=>$(id).textContent=t[map[id]]);
 $('companyName').placeholder=v==='bn'?'যেমন: QIB':'Example: QIB';
 }
+
 function showTab(tab){
 const calc=tab==='calc',remit=tab==='remit',stock=tab==='stock';
 $('calcPanel').classList.toggle('hidden',!calc);$('remitPanel').classList.toggle('hidden',!remit);$('stockPanel').classList.toggle('hidden',!stock);
@@ -285,35 +287,41 @@ $('actualConverted').addEventListener('input',()=>updateRemit('actualConverted')
 $('manualConverted').addEventListener('input',()=>updateRemit('manualConverted'));
 $('manualMainAmount').addEventListener('input',()=>updateRemit('manualMain'));
 ['actualRate','manualRate','incentive','charge'].forEach(id=>$(id).addEventListener('input',()=>updateRemit('settings')));
-$('fromCurrency').addEventListener('change',()=>updateRemit('settings'));$('toCurrency').addEventListener('change',()=>updateRemit('settings'));
+$('fromCurrency').addEventListener('change',()=>updateRemit('settings'));
+$('toCurrency').addEventListener('change',()=>updateRemit('settings'));
 
-/* Custom numeric keypad: edits at the current cursor/selection */
+/* Custom numeric keypad */
 const numericFields=['fromAmount','toAmount','manualMainAmount','actualRate','manualRate','incentive','charge','actualConverted','manualConverted'];
 let activeNumericField=null,keypadOpen=false;
 function hideRemitKeypad(){keypadOpen=false;$('remitKeypad').classList.add('hidden')}
 numericFields.forEach(id=>{
-const field=$(id);field.setAttribute('inputmode','decimal');field.setAttribute('autocomplete','off');
+const field=$(id);
+field.setAttribute('inputmode','none');
+field.setAttribute('autocomplete','off');
+field.setAttribute('autocorrect','off');
+field.setAttribute('spellcheck','false');
 field.addEventListener('focus',()=>{
 activeNumericField=field;keypadOpen=true;$('remitKeypad').classList.remove('hidden');
-// Select the initial zero so the first typed digit replaces it. Do not keep resetting
-// the caret: subsequent taps can place it anywhere in the number.
-if(field.value.trim()==='0')requestAnimationFrame(()=>{if(document.activeElement===field && field.value.trim()==='0')field.setSelectionRange(0,field.value.length)});
+if(field.value.trim()==='0' && field.selectionStart===field.selectionEnd){
+ requestAnimationFrame(()=>{if(document.activeElement===field && field.value.trim()==='0')field.setSelectionRange(0,field.value.length)});
+}
 const label=field.closest('.currency,.setting,.result-input')?.previousElementSibling;
 $('keypadTitle').textContent=label?.textContent?.trim()||T[language].keypad;
 });
-// iOS sometimes reports insertText with a collapsed caret at the end; replace the
-// placeholder zero on the first keystroke in that case as well.
+field.addEventListener('click',()=>{activeNumericField=field;});
 field.addEventListener('beforeinput',e=>{
 if(field.value.trim()==='0' && field.selectionStart===field.selectionEnd && e.inputType && e.inputType.startsWith('insert')){
 field.setSelectionRange(0,field.value.length);
 }
 });
 field.addEventListener('input',()=>{
-// Keep an empty numeric field ready for the next entry without forcing a zero
-// while the user is actively editing it.
 if(field.value==='') return;
 });
-field.addEventListener('blur',()=>{if(keypadOpen&&activeNumericField===field)return;if(field.value.trim()==='')field.value='0';updateRemit('settings')});
+field.addEventListener('blur',()=>{
+if(keypadOpen&&activeNumericField===field)return;
+if(field.value.trim()==='')field.value='0';
+updateRemit('settings');
+});
 });
 $('remitKeypad').addEventListener('pointerdown',e=>{if(e.target.closest('button[data-key]'))e.preventDefault()});
 $('remitKeypad').addEventListener('mousedown',e=>{if(e.target.closest('button[data-key]'))e.preventDefault()});
@@ -327,14 +335,20 @@ else if(key==='back'||key==='delete'){
  if(start===end){if(key==='back')start=Math.max(0,start-1);else end=Math.min(value.length,end+1)}
  field.value=value.slice(0,start)+value.slice(end);
 }
-else if(key==='.') {if(!value.includes('.')){field.value=value.slice(0,start)+'.'+value.slice(end);start++}}
-else {const insert=key;if(value.trim()==='0'){field.value=insert;start=insert.length}
- else{field.value=value.slice(0,start)+insert+value.slice(end);start+=insert.length}}
-field.focus({preventScroll:true});field.setSelectionRange(start,start);
+else if(key==='.') {
+ if(!value.includes('.')){field.value=value.slice(0,start)+'.'+value.slice(end);start++}
+}
+else{
+ const insert=key;
+ if(value.trim()==='0'){field.value=insert;start=insert.length}
+ else{field.value=value.slice(0,start)+insert+value.slice(end);start+=insert.length}
+}
+field.focus({preventScroll:true});
+field.setSelectionRange(start,start);
 field.dispatchEvent(new Event('input',{bubbles:true}));
 });
 
-/* QSE share calculator: two purchase lots, weighted average cost */
+/* QSE share calculator */
 function stockNum(id){const x=parseFloat($(id).value);return Number.isFinite(x)&&x>0?x:0}
 function stockFmt(x){return (Number.isFinite(x)?x:0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}
 function updateStock(){
@@ -346,14 +360,21 @@ const sellQty=stockNum('sellQty'),sellPrice=stockNum('sellPrice'),sellFee=stockN
 const gross=sellQty*sellPrice,sellCharges=gross*sellFee/100+otherSell,net=gross-sellCharges;
 const costSold=Math.min(sellQty,qty)*avg,profit=net-costSold,remaining=Math.max(0,qty-sellQty);
 const percent=costSold>0?profit/costSold*100:0;
-$('totalQty').textContent=stockFmt(qty);$('buyValue').textContent=stockFmt(base)+' QAR';
-$('buyCharges').textContent=stockFmt(buyCharges)+' QAR';$('avgPrice').textContent=stockFmt(avg)+' QAR';
-$('grossSell').textContent=stockFmt(gross)+' QAR';$('sellCharges').textContent=stockFmt(sellCharges)+' QAR';
-$('netSell').textContent=stockFmt(net)+' QAR';$('costSold').textContent=stockFmt(costSold)+' QAR';
-$('netProfit').textContent=stockFmt(profit)+' QAR';$('profitPercent').textContent=stockFmt(percent)+'%';
+$('totalQty').textContent=stockFmt(qty);
+$('buyValue').textContent=stockFmt(base)+' QAR';
+$('buyCharges').textContent=stockFmt(buyCharges)+' QAR';
+$('avgPrice').textContent=stockFmt(avg)+' QAR';
+$('grossSell').textContent=stockFmt(gross)+' QAR';
+$('sellCharges').textContent=stockFmt(sellCharges)+' QAR';
+$('netSell').textContent=stockFmt(net)+' QAR';
+$('costSold').textContent=stockFmt(costSold)+' QAR';
+$('netProfit').textContent=stockFmt(profit)+' QAR';
+$('profitPercent').textContent=stockFmt(percent)+'%';
 $('remainingQty').textContent=stockFmt(remaining);
-$('netProfit').classList.toggle('positive',profit>0);$('netProfit').classList.toggle('negative',profit<0);
-$('profitPercent').classList.toggle('positive',profit>0);$('profitPercent').classList.toggle('negative',profit<0);
+$('netProfit').classList.toggle('positive',profit>0);
+$('netProfit').classList.toggle('negative',profit<0);
+$('profitPercent').classList.toggle('positive',profit>0);
+$('profitPercent').classList.toggle('negative',profit<0);
 }
 ['buyQty1','buyPrice1','buyQty2','buyPrice2','buyFee','otherBuyFee','sellQty','sellPrice','sellFee','otherSellFee'].forEach(id=>$(id).addEventListener('input',updateStock));
 function clearStock(){
@@ -361,32 +382,60 @@ function clearStock(){
 updateStock();
 }
 
-/* Calculator: preserve caret/selection for keypad and delete actions */
-const display=$('calcDisplay');let lastLiveResult='';
+/* Calculator */
+const display=$('calcDisplay');
+let lastLiveResult='';
 function getDisplayText(){return display.innerText.replace(/\u00a0/g,' ').trim()}
 function setDisplayText(value){display.textContent=value}
 function getCalcSelection(){
- const selection=window.getSelection();let text=getDisplayText();
+ const selection=window.getSelection();
+ let text=getDisplayText();
  if(!selection.rangeCount||!display.contains(selection.anchorNode)||!display.contains(selection.focusNode))return {start:text.length,end:text.length};
- const range=selection.getRangeAt(0),before=range.cloneRange();before.selectNodeContents(display);before.setEnd(range.startContainer,range.startOffset);
- const beforeEnd=range.cloneRange();beforeEnd.selectNodeContents(display);beforeEnd.setEnd(range.endContainer,range.endOffset);
+ const range=selection.getRangeAt(0),before=range.cloneRange();
+ before.selectNodeContents(display);
+ before.setEnd(range.startContainer,range.startOffset);
+ const beforeEnd=range.cloneRange();
+ beforeEnd.selectNodeContents(display);
+ beforeEnd.setEnd(range.endContainer,range.endOffset);
  return {start:before.toString().length,end:beforeEnd.toString().length};
 }
 function setCalcSelection(start,end=start){
  const node=display.firstChild||display.appendChild(document.createTextNode(''));
  const range=document.createRange(),selection=window.getSelection();
- const max=node.textContent.length;range.setStart(node,Math.min(start,max));range.setEnd(node,Math.min(end,max));selection.removeAllRanges();selection.addRange(range);
+ const max=node.textContent.length;
+ range.setStart(node,Math.min(start,max));
+ range.setEnd(node,Math.min(end,max));
+ selection.removeAllRanges();
+ selection.addRange(range);
 }
 function calcAdd(value){
- let text=getDisplayText();if(text==='Error')text='';
- let {start,end}=getCalcSelection();if(text==='0'&&start===0&&end===1&&/^\d+$/.test(value)){text='';start=end=0}
- const next=text.slice(0,start)+value+text.slice(end);setDisplayText(next);display.focus({preventScroll:true});setCalcSelection(start+value.length);updateLive();
+ let text=getDisplayText();
+ if(text==='Error')text='';
+ let {start,end}=getCalcSelection();
+ if(text==='0' && /^\d+$/.test(value)){text='';start=end=0}
+ const next=text.slice(0,start)+value+text.slice(end);
+ setDisplayText(next);
+ display.focus({preventScroll:true});
+ setCalcSelection(start+value.length);
+ updateLive();
 }
-function calcClear(){setDisplayText('0');lastLiveResult='';$('liveResult').textContent='';display.focus({preventScroll:true});setCalcSelection(1)}
+function calcClear(){
+ setDisplayText('0');
+ lastLiveResult='';
+ $('liveResult').textContent='';
+ display.focus({preventScroll:true});
+ setCalcSelection(1);
+}
 function calcDelete(){
- let text=getDisplayText();if(text==='Error')text='';let {start,end}=getCalcSelection();
+ let text=getDisplayText();
+ if(text==='Error')text='';
+ let {start,end}=getCalcSelection();
  if(start===end&&start>0)start--;
- const next=text.slice(0,start)+text.slice(end);setDisplayText(next||'0');display.focus({preventScroll:true});setCalcSelection(start);updateLive();
+ const next=text.slice(0,start)+text.slice(end);
+ setDisplayText(next||'0');
+ display.focus({preventScroll:true});
+ setCalcSelection(start);
+ updateLive();
 }
 function evaluateExpression(input){
  const exp=input.replace(/,/g,'').replace(/\s/g,'').replace(/÷/g,'/').replace(/[×]/g,'*').replace(/−/g,'-');
@@ -401,8 +450,10 @@ function evaluateExpression(input){
   while(tokens[i]==='+'||tokens[i]==='-'){if(tokens[i]==='-')sign*=-1;i++;}
   let value;
   if(tokens[i]==='('){
-   i++; value=regular?addSub():sequential();
-   if(tokens[i]!==')')throw Error('Missing bracket'); i++;
+   i++;
+   value=regular?addSub():sequential();
+   if(tokens[i]!==')')throw Error('Missing bracket');
+   i++;
   }else{
    const t=tokens[i++];
    if(t===undefined||! /^(\d+\.?\d*|\.\d+)$/.test(t))throw Error('Invalid number');
@@ -413,11 +464,13 @@ function evaluateExpression(input){
   return {value:sign*value,isPercent};
  }
  function mulDiv(){
-  const first=primary();let value=first.value,combined=false;
+  const first=primary();
+  let value=first.value,combined=false;
   while(tokens[i]==='*'||tokens[i]==='/'){
    const op=tokens[i++],right=primary();
    if(op==='/'&&right.value===0)throw Error('Division by zero');
-   value=op==='*'?value*right.value:value/right.value;combined=true;
+   value=op==='*'?value*right.value:value/right.value;
+   combined=true;
    if(!Number.isFinite(value))throw Error('Invalid result');
   }
   return {value,isPercent:!combined&&first.isPercent};
@@ -437,10 +490,14 @@ function evaluateExpression(input){
   while(i<tokens.length&&tokens[i]!==')'){
    const op=tokens[i++];
    if(!['+','-','*','/'].includes(op))throw Error('Invalid operator');
-   const right=primary();let amount=right.value;
+   const right=primary();
+   let amount=right.value;
    if(right.isPercent&&(op==='+'||op==='-'))amount=value*right.value;
    if(op==='/'&&amount===0)throw Error('Division by zero');
-   if(op==='+')value+=amount;else if(op==='-')value-=amount;else if(op==='*')value*=amount;else value/=amount;
+   if(op==='+')value+=amount;
+   else if(op==='-')value-=amount;
+   else if(op==='*')value*=amount;
+   else value/=amount;
    if(!Number.isFinite(value))throw Error('Invalid result');
   }
   return value;
@@ -450,13 +507,46 @@ function evaluateExpression(input){
  return result;
 }
 function formatCalcResult(x){return Number(x.toFixed(8)).toLocaleString('en-US',{maximumFractionDigits:8})}
-function updateLive(){const text=getDisplayText();try{const result=evaluateExpression(text);if(result!==null){lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}}catch(e){}}
-function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());display.focus({preventScroll:true});setCalcSelection(getDisplayText().length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
-display.addEventListener('input',()=>{let text=getDisplayText(),converted=text.replace(/\//g,'÷').replace(/\*/g,'×');if(text!==converted){const old=getCalcSelection();setDisplayText(converted);setCalcSelection(old.start,old.end)}updateLive()});
-display.addEventListener('keydown',e=>{if(e.key==='Backspace'||e.key==='Delete'){setTimeout(updateLive,0)}});
+function updateLive(){
+ const text=getDisplayText();
+ try{
+  const result=evaluateExpression(text);
+  if(result!==null){
+   lastLiveResult=formatCalcResult(result);
+   $('liveResult').textContent=lastLiveResult;
+  }
+ }catch(e){}
+}
+function calculate(){
+ try{
+  const result=evaluateExpression(getDisplayText());
+  if(result===null)return;
+  setDisplayText(Number(result.toFixed(8)).toString());
+  display.focus({preventScroll:true});
+  setCalcSelection(getDisplayText().length);
+  lastLiveResult=formatCalcResult(result);
+  $('liveResult').textContent=lastLiveResult;
+ }catch(e){$('liveResult').textContent='Error'}
+}
+display.addEventListener('input',()=>{
+ let text=getDisplayText();
+ let converted=text.replace(/\//g,'÷').replace(/\*/g,'×');
+ if(text!==converted){
+  const old=getCalcSelection();
+  setDisplayText(converted);
+  setCalcSelection(old.start,old.end);
+ }
+ updateLive();
+});
+display.addEventListener('keydown',e=>{
+ if(e.key==='Backspace'||e.key==='Delete'){setTimeout(updateLive,0)}
+});
 $('calcMode').addEventListener('change',updateLive);
 
-setLanguage('bn');updateRemit('settings');updateStock();updateLive();
+setLanguage('bn');
+updateRemit('settings');
+updateStock();
+updateLive();
 </script>
 </body>
 </html>
