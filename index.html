@@ -770,27 +770,36 @@ function evaluateExpression(input){
   return {value:sign*value,isPercent};
  }
 
- function readMulDiv(){
+function readMulDiv(){
   let left=readPrimary();
   let value=left.value;
+  let wasCombined=false;
 
   while(tokens[i]==='*'||tokens[i]==='/'){
    const op=tokens[i++];
    const right=readPrimary();
-   value=op==='*'?value*right.value:value/right.value;
+
+   if(op==='/'&&right.value===0){
+    throw Error('Division by zero');
+   }
+
+   value=op==='*'
+    ?value*right.value
+    :value/right.value;
+
+   wasCombined=true;
+
+   if(!Number.isFinite(value)){
+    throw Error('Invalid result');
+   }
   }
 
-  return value;
- }
-
- function readAddSub(){
-  let value=readMulDiv();
-
-  while(tokens[i]==='+'||tokens[i]==='-'){
-   const op=tokens[i++];
-   const right=readMulDiv();
-   const amount=right.isPercent?value*right.value:right.value;
-   value=op==='+'?value+amount:value-amount;
+  return {
+   value,
+   isPercent:!wasCombined&&left.isPercent
+  };
+}
+ 
   }
 
   return value;
