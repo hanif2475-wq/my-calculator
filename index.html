@@ -22,6 +22,7 @@ input:focus,select:focus{outline:2px solid #1685e8}
 .currency{display:flex;border:1px solid #40516a;border-radius:10px;overflow:hidden;background:#0e1929}
 .currency select{width:38%;border:0;border-right:1px solid #40516a;border-radius:0;font-size:15px}
 .currency input{flex:1;width:62%;border:0;border-radius:0;text-align:right}
+.currency input[readonly]{background:#f5f7fa;color:#333}
 #calcPanel{background:#fff;color:#111;padding:14px;border:1px solid #ddd;box-shadow:0 3px 14px #0002}
 #calcPanel label{color:#333}
 #calcPanel select{background:#fff;color:#111;border:1px solid #bbb}
@@ -112,6 +113,8 @@ input:focus,select:focus{outline:2px solid #1685e8}
 <div class="currency"><select id="fromCurrency"></select><input id="fromAmount" type="text" inputmode="none" autocomplete="off" value="0"></div>
 <label id="toLabel">যে মুদ্রায় পাবেন ও পরিমাণ</label>
 <div class="currency"><select id="toCurrency"></select><input id="toAmount" type="text" inputmode="none" autocomplete="off" value="0"></div>
+<label id="manualMainLabel">To Currency & Amount with Manual Rate</label>
+<div class="currency"><select id="manualMainCurrency" aria-label="Manual rate result currency"></select><input id="manualMainAmount" type="text" value="0" readonly aria-label="Amount calculated using manual rate without incentive"></div>
 </div>
 <div class="panel"><div class="settings-grid">
 <div class="setting"><label id="actualLabel">বর্তমান মুদ্রার রেট</label><input id="actualRate" type="text" inputmode="none" autocomplete="off" value="0"></div>
@@ -139,7 +142,7 @@ input:focus,select:focus{outline:2px solid #1685e8}
 <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
 <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
 <button type="button" data-key=".">.</button><button type="button" data-key="0">0</button><button type="button" data-key="back">⌫</button>
-<button type="button" data-key="clear">মুছুন</button><button type="button" data-key="00">00</button><button type="button" class="done" data-key="done">সম্পন্ন</button>
+<button type="button" data-key="delete">Del</button><button type="button" data-key="clear">মুছুন</button><button type="button" data-key="00">00</button><button type="button" class="done" data-key="done">সম্পন্ন</button>
 </div></div>
 </div>
 
@@ -183,13 +186,13 @@ input:focus,select:focus{outline:2px solid #1685e8}
 <script>
 const $=id=>document.getElementById(id);
 const currencies=['BDT','QAR','USD','SAR','AED','INR','GBP','EUR','KWD','OMR','BHD','PKR'];
-['fromCurrency','toCurrency','actualConvertedCurrency','manualConvertedCurrency'].forEach(id=>currencies.forEach(c=>$(id).add(new Option(c,c))));
-$('fromCurrency').value='QAR';$('toCurrency').value='BDT';$('actualConvertedCurrency').value='BDT';$('manualConvertedCurrency').value='BDT';
+['fromCurrency','toCurrency','actualConvertedCurrency','manualConvertedCurrency','manualMainCurrency'].forEach(id=>currencies.forEach(c=>$(id).add(new Option(c,c))));
+$('fromCurrency').value='QAR';$('toCurrency').value='BDT';$('actualConvertedCurrency').value='BDT';$('manualConvertedCurrency').value='BDT';$('manualMainCurrency').value='BDT';
 
 const T={
 bn:{
 calc:'ক্যালকুলেটর',remit:'রেমিট্যান্স ক্যালকুলেটর',stock:'QSE শেয়ার ক্যালকুলেটর',calcTab:'ক্যালকুলেটর',remitTab:'রেমিট্যান্স',stockTab:'QSE শেয়ার',
-mode:'হিসাবের নিয়ম',expression:'আপনার হিসাব লিখুন',from:'যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ',to:'যে মুদ্রায় পাবেন ও পরিমাণ',
+mode:'হিসাবের নিয়ম',expression:'আপনার হিসাব লিখুন',from:'যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ',to:'যে মুদ্রায় পাবেন ও পরিমাণ',manualMain:'প্রণোদনা ছাড়া নিজের নির্ধারিত রেটে মূল ব্যালেন্স',
 actual:'বর্তমান মুদ্রার রেট',manual:'নিজে নির্ধারিত রেট',incentive:'প্রণোদনা (%)',clear:'সব মুছুন',charge:'চার্জ',
 totalCharge:'চার্জসহ মোট পরিমাণ',actualConverted:'বর্তমান রেটে প্রণোদনাসহ মোট পাওয়া টাকা',manualConverted:'নিজের নির্ধারিত রেটে প্রণোদনাসহ মোট পাওয়া টাকা',
 actualInc:'বর্তমান রেটে প্রণোদনার পরিমাণ',manualInc:'নিজের রেটে প্রণোদনার পরিমাণ',totalBenefit:'মোট অতিরিক্ত লাভ',
@@ -207,7 +210,7 @@ stockNote:'এটি হিসাবের সহায়ক টুল, সর�
 },
 en:{
 calc:'Calculator',remit:'Remittance Calculator',stock:'QSE Share Calculator',calcTab:'Calculator',remitTab:'Remittance',stockTab:'QSE Shares',
-mode:'Calculation Mode',expression:'Enter your calculation',from:'From Currency & Amount',to:'To Currency & Amount',
+mode:'Calculation Mode',expression:'Enter your calculation',from:'From Currency & Amount',to:'To Currency & Amount',manualMain:'To Currency & Amount with Manual Rate (without incentive)',
 actual:'Actual Currency Rate',manual:'Manual Rate',incentive:'Incentive (%)',clear:'Clear All',charge:'Charge',
 totalCharge:'Total Amount Including Charge',actualConverted:'Total Converted Amount Including Incentive (Actual Rate)',
 manualConverted:'Total Converted Amount Including Incentive (Manual Rate)',actualInc:'Incentive Amount (Actual Rate)',
@@ -232,7 +235,7 @@ language=v;const t=T[v];
 $('heading').textContent=$('calcPanel').classList.contains('hidden')?($('remitPanel').classList.contains('hidden')?t.stock:t.remit):t.calc;
 $('calcTab').textContent=t.calcTab;$('remitTab').textContent=t.remitTab;$('stockTab').textContent=t.stockTab;
 $('modeLabel').textContent=t.mode;$('expressionLabel').textContent=t.expression;
-$('fromLabel').textContent=t.from;$('toLabel').textContent=t.to;$('actualLabel').textContent=t.actual;$('manualLabel').textContent=t.manual;
+$('fromLabel').textContent=t.from;$('toLabel').textContent=t.to;$('manualMainLabel').textContent=t.manualMain;$('actualLabel').textContent=t.actual;$('manualLabel').textContent=t.manual;
 $('incentiveLabel').textContent=t.incentive;$('chargeInputLabel').textContent=t.charge;$('clearButton').textContent=t.clear;
 $('totalChargeLabel').textContent=t.totalCharge;$('actualConvertedLabel').textContent=t.actualConverted;$('manualConvertedLabel').textContent=t.manualConverted;
 $('actualIncentiveLabel').textContent=t.actualInc;$('manualIncentiveLabel').textContent=t.manualInc;$('chargeResultLabel').textContent=t.charge;
@@ -252,7 +255,7 @@ if(!remit)hideRemitKeypad();
 
 /* Remittance calculations */
 function n(id){let v=$(id).value.replace(/,/g,'').trim();if(!v||v==='-'||v==='.')return 0;let x=Number(v);return Number.isFinite(x)?x:0}
-function fmt(x){if(!Number.isFinite(x))return '0';return x.toLocaleString('en-US',{maximumFractionDigits:4,useGrouping:true})}
+function fmt(x){return Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:4,useGrouping:true}):'0'}
 function setValue(id,x){if(document.activeElement!==$(id))$(id).value=fmt(x)}
 function updateRemit(source='settings'){
 const from=n('fromAmount'),actualRate=n('actualRate'),manualRate=n('manualRate'),incentive=n('incentive'),charge=n('charge');
@@ -262,6 +265,8 @@ else if(source==='to'){const to=n('toAmount'),newFrom=actualRate>0?to/actualRate
 else if(source==='actualConverted'){const target=n('actualConverted'),divisor=actualRate*factor;if(divisor>0){const newFrom=target/divisor;setValue('fromAmount',newFrom);setValue('toAmount',newFrom*actualRate);setValue('manualConverted',newFrom*manualRate*factor)}}
 else if(source!=='manualConverted'){setValue('toAmount',from*actualRate);setValue('actualConverted',actualTotal);setValue('manualConverted',manualTotal)}
 $('actualConvertedCurrency').value=$('toCurrency').value;$('manualConvertedCurrency').value=$('toCurrency').value;
+$('manualMainCurrency').value=$('toCurrency').value;
+setValue('manualMainAmount',manualBase);
 $('totalWithCharge').textContent=fmt(from+charge)+' '+$('fromCurrency').value;
 $('actualIncentiveAmount').textContent=fmt(actualBase*incentive/100)+' '+$('toCurrency').value;
 $('manualIncentiveAmount').textContent=fmt(manualBase*incentive/100)+' '+$('toCurrency').value;
@@ -279,7 +284,7 @@ $('manualConverted').addEventListener('input',()=>updateRemit('manualConverted')
 ['actualRate','manualRate','incentive','charge'].forEach(id=>$(id).addEventListener('input',()=>updateRemit('settings')));
 $('fromCurrency').addEventListener('change',()=>updateRemit('settings'));$('toCurrency').addEventListener('change',()=>updateRemit('settings'));
 
-/* Custom numeric keypad */
+/* Custom numeric keypad: edits at the current cursor/selection */
 const numericFields=['fromAmount','toAmount','actualRate','manualRate','incentive','charge','actualConverted','manualConverted'];
 let activeNumericField=null,keypadOpen=false;
 function hideRemitKeypad(){keypadOpen=false;$('remitKeypad').classList.add('hidden')}
@@ -289,19 +294,24 @@ field.addEventListener('focus',()=>{
 activeNumericField=field;keypadOpen=true;$('remitKeypad').classList.remove('hidden');
 const label=field.closest('.currency,.setting,.result-input')?.previousElementSibling;
 $('keypadTitle').textContent=label?.textContent?.trim()||T[language].keypad;
-setTimeout(()=>{if(keypadOpen)$('remitKeypad').scrollIntoView({behavior:'smooth',block:'nearest'})},150);
 });
 field.addEventListener('blur',()=>{if(keypadOpen&&activeNumericField===field)return;if(field.value.trim()==='')field.value='0';updateRemit('settings')});
 });
+$('remitKeypad').addEventListener('mousedown',e=>{if(e.target.closest('button[data-key]'))e.preventDefault()});
 $('remitKeypad').addEventListener('click',e=>{
 const button=e.target.closest('button[data-key]');if(!button||!activeNumericField)return;
 const field=activeNumericField,key=button.dataset.key;
 if(key==='done'){hideRemitKeypad();activeNumericField=null;field.blur();return}
-let value=field.value;
-if(key==='clear')field.value='';
-else if(key==='back')field.value=value.slice(0,-1);
-else if(key==='.') {if(!value.includes('.'))field.value=value+'.'}
-else{if(value==='0')value='';field.value=value+key}
+let start=field.selectionStart??field.value.length,end=field.selectionEnd??field.value.length,value=field.value;
+if(key==='clear'){field.value='';start=end=0}
+else if(key==='back'||key==='delete'){
+ if(start===end){if(key==='back')start=Math.max(0,start-1);else end=Math.min(value.length,end+1)}
+ field.value=value.slice(0,start)+value.slice(end);
+}
+else if(key==='.') {if(!value.includes('.')){field.value=value.slice(0,start)+'.'+value.slice(end);start++}}
+else {const insert=key;if(value==='0'&&start===end&&start===value.length){field.value=insert;start=insert.length}
+ else{field.value=value.slice(0,start)+insert+value.slice(end);start+=insert.length}}
+field.focus({preventScroll:true});field.setSelectionRange(start,start);
 field.dispatchEvent(new Event('input',{bubbles:true}));
 });
 
@@ -332,22 +342,33 @@ function clearStock(){
 updateStock();
 }
 
-/* Calculator */
+/* Calculator: preserve caret/selection for keypad and delete actions */
 const display=$('calcDisplay');let lastLiveResult='';
 function getDisplayText(){return display.innerText.replace(/\u00a0/g,' ').trim()}
 function setDisplayText(value){display.textContent=value}
-function placeCursorAtEnd(){const range=document.createRange(),selection=window.getSelection();range.selectNodeContents(display);range.collapse(false);selection.removeAllRanges();selection.addRange(range)}
+function getCalcSelection(){
+ const selection=window.getSelection();let text=getDisplayText();
+ if(!selection.rangeCount||!display.contains(selection.anchorNode)||!display.contains(selection.focusNode))return {start:text.length,end:text.length};
+ const range=selection.getRangeAt(0),before=range.cloneRange();before.selectNodeContents(display);before.setEnd(range.startContainer,range.startOffset);
+ const beforeEnd=range.cloneRange();beforeEnd.selectNodeContents(display);beforeEnd.setEnd(range.endContainer,range.endOffset);
+ return {start:before.toString().length,end:beforeEnd.toString().length};
+}
+function setCalcSelection(start,end=start){
+ const node=display.firstChild||display.appendChild(document.createTextNode(''));
+ const range=document.createRange(),selection=window.getSelection();
+ const max=node.textContent.length;range.setStart(node,Math.min(start,max));range.setEnd(node,Math.min(end,max));selection.removeAllRanges();selection.addRange(range);
+}
 function calcAdd(value){
-let text=getDisplayText();if(text==='Error')text='';if(text==='0'&&/^\d+$/.test(value))text='';
-const selection=window.getSelection();let start=text.length,end=text.length;
-if(selection.rangeCount&&display.contains(selection.anchorNode)){
-const range=selection.getRangeAt(0),pre=range.cloneRange();pre.selectNodeContents(display);pre.setEnd(range.startContainer,range.startOffset);start=pre.toString().length;
-const preEnd=range.cloneRange();preEnd.selectNodeContents(display);preEnd.setEnd(range.endContainer,range.endOffset);end=preEnd.toString().length;
+ let text=getDisplayText();if(text==='Error')text='';
+ let {start,end}=getCalcSelection();if(text==='0'&&start===0&&end===1&&/^\d+$/.test(value)){text='';start=end=0}
+ const next=text.slice(0,start)+value+text.slice(end);setDisplayText(next);display.focus({preventScroll:true});setCalcSelection(start+value.length);updateLive();
 }
-setDisplayText(text.slice(0,start)+value+text.slice(end));display.focus({preventScroll:true});placeCursorAtEnd();updateLive();
+function calcClear(){setDisplayText('0');lastLiveResult='';$('liveResult').textContent='';display.focus({preventScroll:true});setCalcSelection(1)}
+function calcDelete(){
+ let text=getDisplayText();if(text==='Error')text='';let {start,end}=getCalcSelection();
+ if(start===end&&start>0)start--;
+ const next=text.slice(0,start)+text.slice(end);setDisplayText(next||'0');display.focus({preventScroll:true});setCalcSelection(start);updateLive();
 }
-function calcClear(){setDisplayText('0');lastLiveResult='';$('liveResult').textContent='';display.focus({preventScroll:true});placeCursorAtEnd()}
-function calcDelete(){const text=getDisplayText();if(text==='Error'||text==='0')setDisplayText('0');else setDisplayText(text.slice(0,-1)||'0');display.focus({preventScroll:true});placeCursorAtEnd();updateLive()}
 function evaluateExpression(input){
  const exp=input.replace(/,/g,'').replace(/\s/g,'').replace(/÷/g,'/').replace(/[×]/g,'*').replace(/−/g,'-');
  if(!exp)return null;
@@ -411,8 +432,9 @@ function evaluateExpression(input){
 }
 function formatCalcResult(x){return Number(x.toFixed(8)).toLocaleString('en-US',{maximumFractionDigits:8})}
 function updateLive(){const text=getDisplayText();try{const result=evaluateExpression(text);if(result!==null){lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}}catch(e){}}
-function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());display.focus({preventScroll:true});placeCursorAtEnd();lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
-display.addEventListener('input',()=>{let text=getDisplayText(),converted=text.replace(/\//g,'÷').replace(/\*/g,'×');if(text!==converted){setDisplayText(converted);placeCursorAtEnd()}updateLive()});
+function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());display.focus({preventScroll:true});setCalcSelection(getDisplayText().length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
+display.addEventListener('input',()=>{let text=getDisplayText(),converted=text.replace(/\//g,'÷').replace(/\*/g,'×');if(text!==converted){const old=getCalcSelection();setDisplayText(converted);setCalcSelection(old.start,old.end)}updateLive()});
+display.addEventListener('keydown',e=>{if(e.key==='Backspace'||e.key==='Delete'){setTimeout(updateLive,0)}});
 $('calcMode').addEventListener('change',updateLive);
 
 setLanguage('bn');updateRemit('settings');updateStock();updateLive();
