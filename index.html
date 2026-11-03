@@ -110,25 +110,25 @@ input:focus,select:focus{outline:2px solid #1685e8}
 <div id="remitPanel" class="hidden">
 <div class="panel">
 <label id="fromLabel">যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ</label>
-<div class="currency"><select id="fromCurrency"></select><input id="fromAmount" type="text" inputmode="none" autocomplete="off" value="0"></div>
+<div class="currency"><select id="fromCurrency"></select><input id="fromAmount" type="text" inputmode="decimal" autocomplete="off" value="0"></div>
 <label id="toLabel">যে মুদ্রায় পাবেন ও পরিমাণ</label>
-<div class="currency"><select id="toCurrency"></select><input id="toAmount" type="text" inputmode="none" autocomplete="off" value="0"></div>
+<div class="currency"><select id="toCurrency"></select><input id="toAmount" type="text" inputmode="decimal" autocomplete="off" value="0"></div>
 <label id="manualMainLabel">To Currency & Amount with Manual Rate</label>
-<div class="currency"><select id="manualMainCurrency" aria-label="Manual rate result currency"></select><input id="manualMainAmount" type="text" value="0" readonly aria-label="Amount calculated using manual rate without incentive"></div>
+<div class="currency"><select id="manualMainCurrency" aria-label="Manual rate result currency"></select><input id="manualMainAmount" type="text" inputmode="decimal" autocomplete="off" value="0" aria-label="Amount using manual rate without incentive"></div>
 </div>
 <div class="panel"><div class="settings-grid">
-<div class="setting"><label id="actualLabel">বর্তমান মুদ্রার রেট</label><input id="actualRate" type="text" inputmode="none" autocomplete="off" value="0"></div>
-<div class="setting"><label id="manualLabel">নিজে নির্ধারিত রেট</label><input id="manualRate" type="text" inputmode="none" autocomplete="off" value="0"></div>
-<div class="setting"><label id="incentiveLabel">প্রণোদনা (%)</label><input id="incentive" type="text" inputmode="none" autocomplete="off" value="0"></div>
-<div class="setting"><label id="chargeInputLabel">চার্জ</label><input id="charge" type="text" inputmode="none" autocomplete="off" value="0"></div>
+<div class="setting"><label id="actualLabel">বর্তমান মুদ্রার রেট</label><input id="actualRate" type="text" inputmode="decimal" autocomplete="off" value="0"></div>
+<div class="setting"><label id="manualLabel">নিজে নির্ধারিত রেট</label><input id="manualRate" type="text" inputmode="decimal" autocomplete="off" value="0"></div>
+<div class="setting"><label id="incentiveLabel">প্রণোদনা (%)</label><input id="incentive" type="text" inputmode="decimal" autocomplete="off" value="0"></div>
+<div class="setting"><label id="chargeInputLabel">চার্জ</label><input id="charge" type="text" inputmode="decimal" autocomplete="off" value="0"></div>
 <button id="clearButton" class="action clear" onclick="clearAll()">সব মুছুন</button>
 </div></div>
 <div class="panel">
 <div class="result"><span id="totalChargeLabel">চার্জসহ মোট পরিমাণ</span><strong id="totalWithCharge">0 QAR</strong></div>
 <label id="actualConvertedLabel">বর্তমান রেটে প্রণোদনাসহ মোট পাওয়া টাকা</label>
-<div class="result-input"><input id="actualConverted" type="text" inputmode="none" autocomplete="off" value="0"><select id="actualConvertedCurrency"></select></div>
+<div class="result-input"><input id="actualConverted" type="text" inputmode="decimal" autocomplete="off" value="0"><select id="actualConvertedCurrency"></select></div>
 <label id="manualConvertedLabel">নিজের নির্ধারিত রেটে প্রণোদনাসহ মোট পাওয়া টাকা</label>
-<div class="result-input"><input id="manualConverted" type="text" inputmode="none" autocomplete="off" value="0"><select id="manualConvertedCurrency"></select></div>
+<div class="result-input"><input id="manualConverted" type="text" inputmode="decimal" autocomplete="off" value="0"><select id="manualConvertedCurrency"></select></div>
 <div class="result"><span id="actualIncentiveLabel">বর্তমান রেটে প্রণোদনার পরিমাণ</span><strong id="actualIncentiveAmount">0 BDT</strong></div>
 <div class="result"><span id="manualIncentiveLabel">নিজের রেটে প্রণোদনার পরিমাণ</span><strong id="manualIncentiveAmount">0 BDT</strong></div>
 <div class="result"><span id="chargeResultLabel">চার্জ</span><strong id="chargeResult">0 QAR</strong></div>
@@ -192,7 +192,7 @@ $('fromCurrency').value='QAR';$('toCurrency').value='BDT';$('actualConvertedCurr
 const T={
 bn:{
 calc:'ক্যালকুলেটর',remit:'রেমিট্যান্স ক্যালকুলেটর',stock:'QSE শেয়ার ক্যালকুলেটর',calcTab:'ক্যালকুলেটর',remitTab:'রেমিট্যান্স',stockTab:'QSE শেয়ার',
-mode:'হিসাবের নিয়ম',expression:'আপনার হিসাব লিখুন',from:'যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ',to:'যে মুদ্রায় পাবেন ও পরিমাণ',manualMain:'প্রণোদনা ছাড়া নিজের নির্ধারিত রেটে মূল ব্যালেন্স',
+mode:'হিসাবের নিয়ম',expression:'আপনার হিসাব লিখুন',from:'যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ',to:'যে মুদ্রায় পাবেন ও পরিমাণ (বর্তমান রেটে)',manualMain:'যে মুদ্রায় পাবেন ও পরিমাণ (নিজের নির্ধারিত রেটে)',
 actual:'বর্তমান মুদ্রার রেট',manual:'নিজে নির্ধারিত রেট',incentive:'প্রণোদনা (%)',clear:'সব মুছুন',charge:'চার্জ',
 totalCharge:'চার্জসহ মোট পরিমাণ',actualConverted:'বর্তমান রেটে প্রণোদনাসহ মোট পাওয়া টাকা',manualConverted:'নিজের নির্ধারিত রেটে প্রণোদনাসহ মোট পাওয়া টাকা',
 actualInc:'বর্তমান রেটে প্রণোদনার পরিমাণ',manualInc:'নিজের রেটে প্রণোদনার পরিমাণ',totalBenefit:'মোট অতিরিক্ত লাভ',
@@ -210,7 +210,7 @@ stockNote:'এটি হিসাবের সহায়ক টুল, সর�
 },
 en:{
 calc:'Calculator',remit:'Remittance Calculator',stock:'QSE Share Calculator',calcTab:'Calculator',remitTab:'Remittance',stockTab:'QSE Shares',
-mode:'Calculation Mode',expression:'Enter your calculation',from:'From Currency & Amount',to:'To Currency & Amount',manualMain:'To Currency & Amount with Manual Rate (without incentive)',
+mode:'Calculation Mode',expression:'Enter your calculation',from:'From Currency & Amount',to:'To Currency & Amount (with actual rate)',manualMain:'To Currency & Amount with (Manual Rate)',
 actual:'Actual Currency Rate',manual:'Manual Rate',incentive:'Incentive (%)',clear:'Clear All',charge:'Charge',
 totalCharge:'Total Amount Including Charge',actualConverted:'Total Converted Amount Including Incentive (Actual Rate)',
 manualConverted:'Total Converted Amount Including Incentive (Manual Rate)',actualInc:'Incentive Amount (Actual Rate)',
@@ -260,16 +260,18 @@ function setValue(id,x){if(document.activeElement!==$(id))$(id).value=fmt(x)}
 function updateRemit(source='settings'){
 const from=n('fromAmount'),actualRate=n('actualRate'),manualRate=n('manualRate'),incentive=n('incentive'),charge=n('charge');
 const factor=1+incentive/100,actualBase=from*actualRate,manualBase=from*manualRate,actualTotal=actualBase*factor,manualTotal=manualBase*factor;
-if(source==='from'){setValue('toAmount',actualBase);setValue('actualConverted',actualTotal);setValue('manualConverted',manualTotal)}
-else if(source==='to'){const to=n('toAmount'),newFrom=actualRate>0?to/actualRate:0;setValue('fromAmount',newFrom);setValue('actualConverted',newFrom*actualRate*factor);setValue('manualConverted',newFrom*manualRate*factor)}
-else if(source==='actualConverted'){const target=n('actualConverted'),divisor=actualRate*factor;if(divisor>0){const newFrom=target/divisor;setValue('fromAmount',newFrom);setValue('toAmount',newFrom*actualRate);setValue('manualConverted',newFrom*manualRate*factor)}}
-else if(source!=='manualConverted'){setValue('toAmount',from*actualRate);setValue('actualConverted',actualTotal);setValue('manualConverted',manualTotal)}
+if(source==='from'){setValue('toAmount',actualBase);setValue('actualConverted',actualTotal);setValue('manualConverted',manualTotal);setValue('manualMainAmount',manualBase)}
+else if(source==='to'){const to=n('toAmount'),newFrom=actualRate>0?to/actualRate:0;setValue('fromAmount',newFrom);setValue('actualConverted',newFrom*actualRate*factor);setValue('manualConverted',newFrom*manualRate*factor);setValue('manualMainAmount',newFrom*manualRate)}
+else if(source==='manualMain'){const target=n('manualMainAmount'),newFrom=manualRate>0?target/manualRate:0;setValue('fromAmount',newFrom);setValue('toAmount',newFrom*actualRate);setValue('actualConverted',newFrom*actualRate*factor);setValue('manualConverted',newFrom*manualRate*factor)}
+else if(source==='actualConverted'){const target=n('actualConverted'),divisor=actualRate*factor;if(divisor>0){const newFrom=target/divisor;setValue('fromAmount',newFrom);setValue('toAmount',newFrom*actualRate);setValue('manualConverted',newFrom*manualRate*factor);setValue('manualMainAmount',newFrom*manualRate)}}
+else if(source!=='manualConverted'){setValue('toAmount',from*actualRate);setValue('actualConverted',actualTotal);setValue('manualConverted',manualTotal);setValue('manualMainAmount',manualBase)}
 $('actualConvertedCurrency').value=$('toCurrency').value;$('manualConvertedCurrency').value=$('toCurrency').value;
 $('manualMainCurrency').value=$('toCurrency').value;
-setValue('manualMainAmount',manualBase);
-$('totalWithCharge').textContent=fmt(from+charge)+' '+$('fromCurrency').value;
-$('actualIncentiveAmount').textContent=fmt(actualBase*incentive/100)+' '+$('toCurrency').value;
-$('manualIncentiveAmount').textContent=fmt(manualBase*incentive/100)+' '+$('toCurrency').value;
+const currentFrom=n('fromAmount'),currentActualBase=currentFrom*actualRate,currentManualBase=currentFrom*manualRate;
+if(source!=='manualMain')setValue('manualMainAmount',currentManualBase);
+$('totalWithCharge').textContent=fmt(currentFrom+charge)+' '+$('fromCurrency').value;
+$('actualIncentiveAmount').textContent=fmt(currentActualBase*incentive/100)+' '+$('toCurrency').value;
+$('manualIncentiveAmount').textContent=fmt(currentManualBase*incentive/100)+' '+$('toCurrency').value;
 $('chargeResult').textContent=fmt(charge)+' '+$('fromCurrency').value;
 $('totalBenefit').textContent=fmt(n('manualConverted')-n('actualConverted'))+' '+$('toCurrency').value;
 }
@@ -281,22 +283,39 @@ $('fromAmount').addEventListener('input',()=>updateRemit('from'));
 $('toAmount').addEventListener('input',()=>updateRemit('to'));
 $('actualConverted').addEventListener('input',()=>updateRemit('actualConverted'));
 $('manualConverted').addEventListener('input',()=>updateRemit('manualConverted'));
+$('manualMainAmount').addEventListener('input',()=>updateRemit('manualMain'));
 ['actualRate','manualRate','incentive','charge'].forEach(id=>$(id).addEventListener('input',()=>updateRemit('settings')));
 $('fromCurrency').addEventListener('change',()=>updateRemit('settings'));$('toCurrency').addEventListener('change',()=>updateRemit('settings'));
 
 /* Custom numeric keypad: edits at the current cursor/selection */
-const numericFields=['fromAmount','toAmount','actualRate','manualRate','incentive','charge','actualConverted','manualConverted'];
+const numericFields=['fromAmount','toAmount','manualMainAmount','actualRate','manualRate','incentive','charge','actualConverted','manualConverted'];
 let activeNumericField=null,keypadOpen=false;
 function hideRemitKeypad(){keypadOpen=false;$('remitKeypad').classList.add('hidden')}
 numericFields.forEach(id=>{
-const field=$(id);field.setAttribute('inputmode','none');field.setAttribute('autocomplete','off');
+const field=$(id);field.setAttribute('inputmode','decimal');field.setAttribute('autocomplete','off');
 field.addEventListener('focus',()=>{
 activeNumericField=field;keypadOpen=true;$('remitKeypad').classList.remove('hidden');
+// Select the initial zero so the first typed digit replaces it. Do not keep resetting
+// the caret: subsequent taps can place it anywhere in the number.
+if(field.value.trim()==='0')requestAnimationFrame(()=>{if(document.activeElement===field && field.value.trim()==='0')field.setSelectionRange(0,field.value.length)});
 const label=field.closest('.currency,.setting,.result-input')?.previousElementSibling;
 $('keypadTitle').textContent=label?.textContent?.trim()||T[language].keypad;
 });
+// iOS sometimes reports insertText with a collapsed caret at the end; replace the
+// placeholder zero on the first keystroke in that case as well.
+field.addEventListener('beforeinput',e=>{
+if(field.value.trim()==='0' && field.selectionStart===field.selectionEnd && e.inputType && e.inputType.startsWith('insert')){
+field.setSelectionRange(0,field.value.length);
+}
+});
+field.addEventListener('input',()=>{
+// Keep an empty numeric field ready for the next entry without forcing a zero
+// while the user is actively editing it.
+if(field.value==='') return;
+});
 field.addEventListener('blur',()=>{if(keypadOpen&&activeNumericField===field)return;if(field.value.trim()==='')field.value='0';updateRemit('settings')});
 });
+$('remitKeypad').addEventListener('pointerdown',e=>{if(e.target.closest('button[data-key]'))e.preventDefault()});
 $('remitKeypad').addEventListener('mousedown',e=>{if(e.target.closest('button[data-key]'))e.preventDefault()});
 $('remitKeypad').addEventListener('click',e=>{
 const button=e.target.closest('button[data-key]');if(!button||!activeNumericField)return;
@@ -309,7 +328,7 @@ else if(key==='back'||key==='delete'){
  field.value=value.slice(0,start)+value.slice(end);
 }
 else if(key==='.') {if(!value.includes('.')){field.value=value.slice(0,start)+'.'+value.slice(end);start++}}
-else {const insert=key;if(value==='0'&&start===end&&start===value.length){field.value=insert;start=insert.length}
+else {const insert=key;if(value.trim()==='0'){field.value=insert;start=insert.length}
  else{field.value=value.slice(0,start)+insert+value.slice(end);start+=insert.length}}
 field.focus({preventScroll:true});field.setSelectionRange(start,start);
 field.dispatchEvent(new Event('input',{bubbles:true}));
