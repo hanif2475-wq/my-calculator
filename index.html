@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -28,10 +27,10 @@ input:focus,select:focus{outline:2px solid #1685e8}
 #calcPanel label{color:#333}
 #calcPanel select{background:#fff;color:#111;border:1px solid #bbb}
 .calc-display{width:100%;height:144px;overflow:hidden;display:flex;flex-direction:column;margin:8px 0 12px;padding:12px;background:#fff;color:#111;border:1px solid #bbb;border-radius:12px}
-.calc-expression{flex:1;min-height:0;width:100%;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:32px;line-height:1.35;outline:none;user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
+.calc-expression{flex:1;min-height:0;width:100%;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:32px;line-height:1.35;outline:none;user-select:text;-webkit-user-select:text;-webkit-touch-callout:default;touch-action:pan-y}
 .live-result{flex-shrink:0;min-height:36px;padding-top:5px;text-align:right;font-size:25px;font-weight:bold;color:#16834a;overflow-wrap:anywhere;white-space:nowrap}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.grid button{font-size:23px;min-height:59px;padding:10px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:12px;box-shadow:0 2px 3px #0001}
+.grid button{font-size:23px;min-height:59px;padding:10px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:12px;box-shadow:0 2px 3px #0001;touch-action:manipulation}
 .grid button:active{background:#e9e9e9;transform:scale(.97)}
 .grid .op,.grid .eq,.grid .cross,.grid .ac{background:#f2f2f2;color:#111;font-weight:bold}
 .cross svg{width:30px;height:30px;display:block;margin:auto;fill:none;stroke:#111;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
@@ -240,7 +239,7 @@ costSold:'বিক্রি করা শেয়ারের ক্রয় 
 profit:'নিট লাভ / ক্ষতি',profitPercent:'লাভ / ক্ষতির হার',
 remaining:'অবশিষ্ট শেয়ার',stockClear:'সব হিসাব মুছুন',
 stockNote:'এটি হিসাবের সহায়ক টুল, সরাসরি QSE বা ব্রোকারের লেনদেন নয়। চার্জের সঠিক হার আপনার ব্রোকারের স্টেটমেন্ট দেখে বসান। কর বা অন্য চার্জ থাকলে অতিরিক্ত চার্জে যোগ করুন।',
-overSell:'সতর্কতা: আপনার কাছে যত শেয়ার আছে, তার বেশি বিক্রি করা যাবে না।'
+overSell:'সতর্কতা: আপনার কাছে যত শেয়ার আছে, তার বেশি বিক্রি করা যাবে না.'
 },
 en:{
 calc:'Calculator',remit:'Remittance Calculator',stock:'QSE Share Calculator',
@@ -346,7 +345,7 @@ function showTab(tab){
  if(!remit)hideRemitKeypad();
 }
 
-/* Remittance calculations */
+/* Remittance calculations: existing rules retained */
 function n(id){
  const raw=String($(id).value).replace(/,/g,'').trim();
  if(!raw||raw==='-'||raw==='.')return 0;
@@ -423,15 +422,13 @@ $('manualConverted').addEventListener('input',()=>updateRemit('manualConverted')
  $(id).addEventListener('input',()=>updateRemit('settings'))
 );
 
-/* Currency swap: changing one currency swaps the other if they match */
+/* Currency swap */
 let previousFromCurrency=$('fromCurrency').value;
 let previousToCurrency=$('toCurrency').value;
 
 $('fromCurrency').addEventListener('change',()=>{
  const selected=$('fromCurrency').value;
- if(selected===previousToCurrency){
-  $('toCurrency').value=previousFromCurrency;
- }
+ if(selected===previousToCurrency)$('toCurrency').value=previousFromCurrency;
  previousFromCurrency=$('fromCurrency').value;
  previousToCurrency=$('toCurrency').value;
  updateRemit('settings');
@@ -439,9 +436,7 @@ $('fromCurrency').addEventListener('change',()=>{
 
 $('toCurrency').addEventListener('change',()=>{
  const selected=$('toCurrency').value;
- if(selected===previousFromCurrency){
-  $('fromCurrency').value=previousToCurrency;
- }
+ if(selected===previousFromCurrency)$('fromCurrency').value=previousToCurrency;
  previousFromCurrency=$('fromCurrency').value;
  previousToCurrency=$('toCurrency').value;
  updateRemit('settings');
@@ -528,8 +523,6 @@ function updateStock(){
 
  const qty=q1+q2;
  const base=q1*p1+q2*p2;
-
- /* অতিরিক্ত ক্রয় চার্জ একবারই মোট ক্রয় খরচে যোগ হবে */
  const buyCharges=base*buyFee/100+(qty>0?otherBuy:0);
  const totalCost=base+buyCharges;
  const avg=qty>0?totalCost/qty:0;
@@ -539,7 +532,6 @@ function updateStock(){
  const sellFee=stockNum('sellFee');
  const otherSell=stockNum('otherSellFee');
 
- /* হাতে থাকা শেয়ারের বেশি বিক্রির হিসাব করা হবে না */
  const invalidSale=requestedSellQty>qty;
  const sellQty=Math.min(requestedSellQty,qty);
 
@@ -589,46 +581,74 @@ function clearStock(){
 /* Calculator */
 const display=$('calcDisplay');
 let lastLiveResult='';
+let savedCaret={start:1,end:1};
 
 function getDisplayText(){
- return display.innerText.replace(/\u00a0/g,' ').trim();
+ return display.innerText.replace(/\u00a0/g,' ').replace(/\n/g,'').trim();
 }
 function setDisplayText(value){
  display.textContent=value;
 }
-function placeCursorAtEnd(){
+
+function getCaretOffsets(){
+ const text=getDisplayText();
+ const selection=window.getSelection();
+ if(!selection||!selection.rangeCount||!display.contains(selection.anchorNode)){
+  return {start:text.length,end:text.length};
+ }
+
+ const range=selection.getRangeAt(0);
+ const pre=range.cloneRange();
+ pre.selectNodeContents(display);
+ pre.setEnd(range.startContainer,range.startOffset);
+ const start=pre.toString().length;
+
+ const preEnd=range.cloneRange();
+ preEnd.selectNodeContents(display);
+ preEnd.setEnd(range.endContainer,range.endOffset);
+ const end=preEnd.toString().length;
+
+ return {start:Math.min(start,text.length),end:Math.min(end,text.length)};
+}
+
+function setCaretOffset(offset,endOffset=offset){
+ const node=display.firstChild;
+ if(!node)return;
+ const length=node.textContent.length;
  const range=document.createRange();
  const selection=window.getSelection();
- range.selectNodeContents(display);
- range.collapse(false);
+ range.setStart(node,Math.max(0,Math.min(offset,length)));
+ range.setEnd(node,Math.max(0,Math.min(endOffset,length)));
  selection.removeAllRanges();
  selection.addRange(range);
+ savedCaret={start:offset,end:endOffset};
+}
+
+function placeCursorAtEnd(){
+ const length=getDisplayText().length;
+ setCaretOffset(length);
 }
 
 function calcAdd(value){
  let text=getDisplayText();
- if(text==='Error')text='';
- if(text==='0'&&/^\d+$/.test(value))text='';
+ let {start,end}=getCaretOffsets();
 
- const selection=window.getSelection();
- let start=text.length,end=text.length;
-
- if(selection.rangeCount&&display.contains(selection.anchorNode)){
-  const range=selection.getRangeAt(0);
-  const pre=range.cloneRange();
-  pre.selectNodeContents(display);
-  pre.setEnd(range.startContainer,range.startOffset);
-  start=pre.toString().length;
-
-  const preEnd=range.cloneRange();
-  preEnd.selectNodeContents(display);
-  preEnd.setEnd(range.endContainer,range.endOffset);
-  end=preEnd.toString().length;
+ if(text==='Error'){
+  text='';
+  start=end=0;
  }
 
- setDisplayText(text.slice(0,start)+value+text.slice(end));
+ if(text==='0'&&/^\d+$/.test(value)){
+  text='';
+  start=end=0;
+ }
+
+ const newText=text.slice(0,start)+value+text.slice(end);
+ const newCaret=start+value.length;
+
+ setDisplayText(newText||'0');
  display.focus({preventScroll:true});
- placeCursorAtEnd();
+ setCaretOffset(newText?newCaret:1);
  updateLive();
 }
 
@@ -637,19 +657,65 @@ function calcClear(){
  lastLiveResult='';
  $('liveResult').textContent='';
  display.focus({preventScroll:true});
- placeCursorAtEnd();
-}
-
-function calcDelete(){
- const text=getDisplayText();
- if(text==='Error'||text==='0')setDisplayText('0');
- else setDisplayText(text.slice(0,-1)||'0');
- display.focus({preventScroll:true});
- placeCursorAtEnd();
+ setCaretOffset(1);
  updateLive();
 }
 
-/* Safe expression parser: no eval or Function */
+function calcDelete(){
+ let text=getDisplayText();
+ let {start,end}=getCaretOffsets();
+
+ if(text==='Error'||text==='0'){
+  setDisplayText('0');
+  display.focus({preventScroll:true});
+  setCaretOffset(1);
+  updateLive();
+  return;
+ }
+
+ if(start!==end){
+  text=text.slice(0,start)+text.slice(end);
+ }else if(start>0){
+  text=text.slice(0,start-1)+text.slice(start);
+  start--;
+  end=start;
+ }else{
+  display.focus({preventScroll:true});
+  return;
+ }
+
+ if(!text){
+  text='0';
+  start=end=1;
+ }
+
+ setDisplayText(text);
+ display.focus({preventScroll:true});
+ setCaretOffset(Math.min(start,text.length),Math.min(end,text.length));
+ updateLive();
+}
+
+/* Prevent calculator button taps from stealing the display selection */
+document.querySelectorAll('#calcPanel .grid button').forEach(button=>{
+ button.addEventListener('mousedown',e=>e.preventDefault());
+});
+
+display.addEventListener('keyup',()=>{
+ savedCaret=getCaretOffsets();
+});
+display.addEventListener('mouseup',()=>{
+ savedCaret=getCaretOffsets();
+});
+display.addEventListener('touchend',()=>{
+ setTimeout(()=>{savedCaret=getCaretOffsets()},0);
+});
+document.addEventListener('selectionchange',()=>{
+ if(document.activeElement===display){
+  savedCaret=getCaretOffsets();
+ }
+});
+
+/* Safe expression parser */
 function tokenizeExpression(input){
  let exp=input.replace(/,/g,'').replace(/\s/g,'')
   .replace(/÷/g,'/').replace(/[×]/g,'*').replace(/−/g,'-');
@@ -659,75 +725,23 @@ function tokenizeExpression(input){
 
  const raw=exp.match(/\d*\.?\d+|[()+\-*/%]/g);
  if(!raw||raw.join('')!==exp)throw Error('Invalid expression');
-
  return raw;
 }
 
+/*
+ Percentage rules:
+ Addition/subtraction: percentage is calculated from the current left value.
+ Multiplication/division: percentage is treated as number divided by 100.
+ Example: 100000 + 2.5% = 102500
+*/
 function evaluateExpression(input){
- let tokens=tokenizeExpression(input);
+ const tokens=tokenizeExpression(input);
  if(!tokens.length)return null;
 
- /* Percent means percentage of the immediately preceding number */
- tokens=tokens.map(token=>token);
-
- if($('calcMode').value==='regular'){
-  let i=0;
-
-  function primary(){
-   let token=tokens[i++];
-   if(token==='+'||token==='-'){
-    const value=primary();
-    return token==='-'?-value:value;
-   }
-   if(token==='('){
-    const value=addSub();
-    if(tokens[i++]!==')')throw Error('Missing bracket');
-    return value;
-   }
-   if(token==='%' )throw Error('Invalid percent');
-   const value=Number(token);
-   if(!Number.isFinite(value))throw Error('Invalid number');
-   return value;
-  }
-
-  function percentValue(){
-   let value=primary();
-   while(tokens[i]==='%'){
-    i++;
-    value=value/100;
-   }
-   return value;
-  }
-
-  function mulDiv(){
-   let value=percentValue();
-   while(i<tokens.length&&(tokens[i]==='*'||tokens[i]==='/')){
-    const op=tokens[i++];
-    const right=percentValue();
-    value=op==='*'?value*right:value/right;
-   }
-   return value;
-  }
-
-  function addSub(){
-   let value=mulDiv();
-   while(i<tokens.length&&(tokens[i]==='+'||tokens[i]==='-')){
-    const op=tokens[i++];
-    const right=mulDiv();
-    value=op==='+'?value+right:value-right;
-   }
-   return value;
-  }
-
-  const result=addSub();
-  if(i!==tokens.length||!Number.isFinite(result))return null;
-  return result;
- }
-
- /* Sequential: সব অপারেশন বাম থেকে ডানে */
  let i=0;
+ const regular=$('calcMode').value==='regular';
 
- function atom(){
+ function readPrimary(){
   let sign=1;
   while(tokens[i]==='+'||tokens[i]==='-'){
    if(tokens[i]==='-')sign*=-1;
@@ -737,36 +751,76 @@ function evaluateExpression(input){
   let value;
   if(tokens[i]==='('){
    i++;
-   value=sequentialExpression();
-   if(tokens[i++]!==')')throw Error('Missing bracket');
+   value=regular?readAddSub():readSequential();
+   if(tokens[i]!==')')throw Error('Missing bracket');
+   i++;
   }else{
    const token=tokens[i++];
    if(token===undefined||!/^(\d+\.?\d*|\.\d+)$/.test(token))throw Error('Invalid number');
    value=Number(token);
   }
 
+  let isPercent=false;
   while(tokens[i]==='%'){
    i++;
    value/=100;
+   isPercent=true;
   }
-  return sign*value;
+
+  return {value:sign*value,isPercent};
  }
 
- function sequentialExpression(){
-  let value=atom();
-  while(i<tokens.length&&tokens[i]!==')'){
+ function readMulDiv(){
+  let left=readPrimary();
+  let value=left.value;
+
+  while(tokens[i]==='*'||tokens[i]==='/'){
    const op=tokens[i++];
-   if(!['+','-','*','/'].includes(op))throw Error('Invalid operator');
-   const right=atom();
-   if(op==='+')value+=right;
-   else if(op==='-')value-=right;
-   else if(op==='*')value*=right;
-   else value/=right;
+   const right=readPrimary();
+   value=op==='*'?value*right.value:value/right.value;
   }
+
   return value;
  }
 
- const result=sequentialExpression();
+ function readAddSub(){
+  let value=readMulDiv();
+
+  while(tokens[i]==='+'||tokens[i]==='-'){
+   const op=tokens[i++];
+   const right=readMulDiv();
+   const amount=right.isPercent?value*right.value:right.value;
+   value=op==='+'?value+amount:value-amount;
+  }
+
+  return value;
+ }
+
+ function readSequential(){
+  let first=readPrimary();
+  let value=first.value;
+
+  while(i<tokens.length&&tokens[i]!==')'){
+   const op=tokens[i++];
+   if(!['+','-','*','/'].includes(op))throw Error('Invalid operator');
+
+   const right=readPrimary();
+   let amount=right.value;
+
+   if(right.isPercent&&(op==='+'||op==='-')){
+    amount=value*right.value;
+   }
+
+   if(op==='+')value+=amount;
+   else if(op==='-')value-=amount;
+   else if(op==='*')value*=amount;
+   else value/=amount;
+  }
+
+  return value;
+ }
+
+ const result=regular?readAddSub():readSequential();
  if(i!==tokens.length||!Number.isFinite(result))return null;
  return result;
 }
@@ -794,9 +848,12 @@ function calculate(){
  try{
   const result=evaluateExpression(getDisplayText());
   if(result===null)return;
-  setDisplayText(Number(result.toFixed(8)).toString());
+
+  const finalValue=Number(result.toFixed(8)).toString();
+  setDisplayText(finalValue);
   display.focus({preventScroll:true});
   placeCursorAtEnd();
+
   lastLiveResult=formatCalcResult(result);
   $('liveResult').textContent=lastLiveResult;
  }catch(e){
@@ -804,13 +861,9 @@ function calculate(){
  }
 }
 
+/* Do not rewrite typed characters while user is moving the cursor */
 display.addEventListener('input',()=>{
- let text=getDisplayText();
- let converted=text.replace(/\//g,'÷').replace(/\*/g,'×');
- if(text!==converted){
-  setDisplayText(converted);
-  placeCursorAtEnd();
- }
+ savedCaret=getCaretOffsets();
  updateLive();
 });
 
