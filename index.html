@@ -27,7 +27,7 @@ input:focus,select:focus{outline:2px solid #1685e8}
 #calcPanel label{color:#333}
 #calcPanel select{background:#fff;color:#111;border:1px solid #bbb}
 .calc-display{width:100%;height:144px;overflow:hidden;display:flex;flex-direction:column;margin:8px 0 12px;padding:12px;background:#fff;color:#111;border:1px solid #bbb;border-radius:12px}
-.calc-expression{flex:1;min-height:0;width:100%;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:32px;line-height:1.35;outline:none;user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
+.calc-expression{flex:1;min-height:0;width:100%;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:32px;line-height:1.35;outline:none;user-select:text;-webkit-user-select:text;-webkit-touch-callout:default;cursor:text}
 .live-result{flex-shrink:0;min-height:36px;padding-top:5px;text-align:right;font-size:25px;font-weight:bold;color:#16834a;overflow-wrap:anywhere;white-space:nowrap}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .grid button{font-size:23px;min-height:59px;padding:10px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:12px;box-shadow:0 2px 3px #0001}
@@ -151,12 +151,12 @@ input:focus,select:focus{outline:2px solid #1685e8}
 <h3 id="stockTitle">QSE শেয়ার ক্যালকুলেটর</h3>
 <div class="small" id="stockIntro">কাতার স্টক এক্সচেঞ্জের শেয়ার কেনা-বেচার হিসাব করুন।</div>
 <label id="companyLabel">কোম্পানির নাম (ঐচ্ছিক)</label><input id="companyName" type="text" placeholder="যেমন: QIB">
-<label id="buy1Label">প্রথমবার কেনা — শেয়ারের সংখ্যা</label><input id="buyQty1" type="number" min="0" step="any" value="0">
-<label id="buy1PriceLabel">প্রথমবার কেনার দাম (প্রতি শেয়ার QAR)</label><input id="buyPrice1" type="number" min="0" step="any" value="0">
-<label id="buy2Label">দ্বিতীয়বার কেনা — শেয়ারের সংখ্যা</label><input id="buyQty2" type="number" min="0" step="any" value="0">
-<label id="buy2PriceLabel">দ্বিতীয়বার কেনার দাম (প্রতি শেয়ার QAR)</label><input id="buyPrice2" type="number" min="0" step="any" value="0">
-<label id="buyFeeLabel">কেনার চার্জ (%)</label><input id="buyFee" type="number" min="0" step="any" value="0">
-<label id="otherBuyFeeLabel">কেনার অতিরিক্ত চার্জ (QAR)</label><input id="otherBuyFee" type="number" min="0" step="any" value="0">
+<label id="buy1Label">প্রথমবার কেনা — শেয়ারের সংখ্যা</label><input id="buyQty1" type="text" inputmode="decimal" value="0">
+<label id="buy1PriceLabel">প্রথমবার কেনার দাম (প্রতি শেয়ার QAR)</label><input id="buyPrice1" type="text" inputmode="decimal" value="0">
+<label id="buy2Label">দ্বিতীয়বার কেনা — শেয়ারের সংখ্যা</label><input id="buyQty2" type="text" inputmode="decimal" value="0">
+<label id="buy2PriceLabel">দ্বিতীয়বার কেনার দাম (প্রতি শেয়ার QAR)</label><input id="buyPrice2" type="text" inputmode="decimal" value="0">
+<label id="buyFeeLabel">কেনার চার্জ (%)</label><input id="buyFee" type="text" inputmode="decimal" value="0">
+<label id="otherBuyFeeLabel">কেনার অতিরিক্ত চার্জ (QAR)</label><input id="otherBuyFee" type="text" inputmode="decimal" value="0">
 <div class="result"><span id="totalQtyLabel">মোট শেয়ার</span><strong id="totalQty">0</strong></div>
 <div class="result"><span id="buyValueLabel">শেয়ারের মোট ক্রয়মূল্য</span><strong id="buyValue">0 QAR</strong></div>
 <div class="result"><span id="buyChargesLabel">কেনার মোট চার্জ</span><strong id="buyCharges">0 QAR</strong></div>
@@ -164,10 +164,10 @@ input:focus,select:focus{outline:2px solid #1685e8}
 </div>
 <div class="panel">
 <h3 id="sellTitle">বিক্রির হিসাব</h3>
-<label id="sellQtyLabel">কতটি শেয়ার বিক্রি করবেন</label><input id="sellQty" type="number" min="0" step="any" value="0">
-<label id="sellPriceLabel">বিক্রির দাম (প্রতি শেয়ার QAR)</label><input id="sellPrice" type="number" min="0" step="any" value="0">
-<label id="sellFeeLabel">বিক্রির চার্জ (%)</label><input id="sellFee" type="number" min="0" step="any" value="0">
-<label id="otherSellFeeLabel">বিক্রির অতিরিক্ত চার্জ (QAR)</label><input id="otherSellFee" type="number" min="0" step="any" value="0">
+<label id="sellQtyLabel">কতটি শেয়ার বিক্রি করবেন</label><input id="sellQty" type="text" inputmode="decimal" value="0">
+<label id="sellPriceLabel">বিক্রির দাম (প্রতি শেয়ার QAR)</label><input id="sellPrice" type="text" inputmode="decimal" value="0">
+<label id="sellFeeLabel">বিক্রির চার্জ (%)</label><input id="sellFee" type="text" inputmode="decimal" value="0">
+<label id="otherSellFeeLabel">বিক্রির অতিরিক্ত চার্জ (QAR)</label><input id="otherSellFee" type="text" inputmode="decimal" value="0">
 <div class="result"><span id="grossSellLabel">মোট বিক্রয়মূল্য</span><strong id="grossSell">0 QAR</strong></div>
 <div class="result"><span id="sellChargesLabel">বিক্রির মোট চার্জ</span><strong id="sellCharges">0 QAR</strong></div>
 <div class="result"><span id="netSellLabel">চার্জ বাদে বিক্রির টাকা</span><strong id="netSell">0 QAR</strong></div>
@@ -307,7 +307,6 @@ else if(source==='actualConverted'){
  }
 }
 else if(source==='manualConverted'){
- // Manual Converted Amount থেকে From Amount উল্টো হিসাব
  const target=n('manualConverted');
  const divisor=manualRate*factor;
  if(divisor>0){
@@ -378,7 +377,6 @@ numericFields.forEach(id=>{
   keypadOpen=true;
   $('remitKeypad').classList.remove('hidden');
 
-  // শূন্য থাকলে সিলেকশন না করে কার্সর শেষে রাখা
   if(field.value.trim()==='0'){
    field.setSelectionRange(1,1);
   }
@@ -392,7 +390,7 @@ numericFields.forEach(id=>{
  });
 
  field.addEventListener('input',()=>{
-  if(field.value==='')return;
+  if(field.value==='0')field.setSelectionRange(1,1);
  });
 
  field.addEventListener('blur',()=>{
@@ -462,7 +460,10 @@ $('remitKeypad').addEventListener('click',e=>{
 });
 
 /* QSE share calculator */
-function stockNum(id){const x=parseFloat($(id).value);return Number.isFinite(x)&&x>0?x:0}
+function stockNum(id){
+ const x=parseFloat($(id).value.replace(/,/g,''));
+ return Number.isFinite(x)&&x>0?x:0;
+}
 function stockFmt(x){return (Number.isFinite(x)?x:0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}
 
 function updateStock(){
@@ -492,7 +493,32 @@ $('profitPercent').classList.toggle('positive',profit>0);
 $('profitPercent').classList.toggle('negative',profit<0);
 }
 
-['buyQty1','buyPrice1','buyQty2','buyPrice2','buyFee','otherBuyFee','sellQty','sellPrice','sellFee','otherSellFee'].forEach(id=>$(id).addEventListener('input',updateStock));
+const stockFields=['buyQty1','buyPrice1','buyQty2','buyPrice2','buyFee','otherBuyFee','sellQty','sellPrice','sellFee','otherSellFee'];
+
+stockFields.forEach(id=>{
+ const field=$(id);
+
+ field.addEventListener('focus',()=>{
+  if(field.value==='0'){
+   field.setSelectionRange(1,1);
+  }
+ });
+
+ field.addEventListener('beforeinput',e=>{
+  if(field.value==='0'&&
+     field.selectionStart===1&&
+     field.selectionEnd===1&&
+     e.inputType==='insertText'&&
+     e.data){
+   e.preventDefault();
+   field.value=e.data;
+   field.setSelectionRange(field.value.length,field.value.length);
+   field.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+ });
+
+ field.addEventListener('input',updateStock);
+});
 
 function clearStock(){
 ['companyName','buyQty1','buyPrice1','buyQty2','buyPrice2','buyFee','otherBuyFee','sellQty','sellPrice','sellFee','otherSellFee'].forEach(id=>$(id).value=id==='companyName'?'':'0');
@@ -502,61 +528,115 @@ updateStock();
 /* Calculator */
 const display=$('calcDisplay');
 let lastLiveResult='';
+let calcCaretStart=1;
+let calcCaretEnd=1;
 
 function getDisplayText(){
- return display.innerText.replace(/\u00a0/g,' ').trim();
+ return display.innerText.replace(/\u00a0/g,' ');
 }
+
 function setDisplayText(value){
  display.textContent=value;
 }
-function getCalcSelection(){
+
+function saveCalcSelection(){
  const selection=window.getSelection();
- let text=getDisplayText();
- if(!selection.rangeCount||!display.contains(selection.anchorNode)||!display.contains(selection.focusNode))return {start:text.length,end:text.length};
- const range=selection.getRangeAt(0),before=range.cloneRange();
- before.selectNodeContents(display);
- before.setEnd(range.startContainer,range.startOffset);
- const beforeEnd=range.cloneRange();
- beforeEnd.selectNodeContents(display);
- beforeEnd.setEnd(range.endContainer,range.endOffset);
- return {start:before.toString().length,end:beforeEnd.toString().length};
+
+ if(!selection||!selection.rangeCount)return;
+
+ const range=selection.getRangeAt(0);
+
+ if(!display.contains(range.startContainer)||
+    !display.contains(range.endContainer))return;
+
+ const startRange=range.cloneRange();
+ startRange.selectNodeContents(display);
+ startRange.setEnd(range.startContainer,range.startOffset);
+
+ const endRange=range.cloneRange();
+ endRange.selectNodeContents(display);
+ endRange.setEnd(range.endContainer,range.endOffset);
+
+ calcCaretStart=startRange.toString().length;
+ calcCaretEnd=endRange.toString().length;
 }
+
+function getCalcSelection(){
+ const len=getDisplayText().length;
+
+ return {
+  start:Math.min(calcCaretStart,len),
+  end:Math.min(calcCaretEnd,len)
+ };
+}
+
 function setCalcSelection(start,end=start){
- const node=display.firstChild||display.appendChild(document.createTextNode(''));
- const range=document.createRange(),selection=window.getSelection();
+ const node=display.firstChild||
+ display.appendChild(document.createTextNode(''));
+
  const max=node.textContent.length;
- range.setStart(node,Math.min(start,max));
- range.setEnd(node,Math.min(end,max));
+
+ calcCaretStart=Math.max(0,Math.min(start,max));
+ calcCaretEnd=Math.max(0,Math.min(end,max));
+
+ const range=document.createRange();
+ const selection=window.getSelection();
+
+ range.setStart(node,calcCaretStart);
+ range.setEnd(node,calcCaretEnd);
+
  selection.removeAllRanges();
  selection.addRange(range);
 }
+
 function calcAdd(value){
  let text=getDisplayText();
+
  if(text==='Error')text='';
+
  let {start,end}=getCalcSelection();
- if(text==='0' && /^\d+$/.test(value)){text='';start=end=0}
+
+ if(text.trim()==='0'&&/^\d+$/.test(value)){
+  text='';
+  start=end=0;
+ }
+
  const next=text.slice(0,start)+value+text.slice(end);
+
  setDisplayText(next);
+
  display.focus({preventScroll:true});
  setCalcSelection(start+value.length);
+
  updateLive();
 }
+
 function calcClear(){
  setDisplayText('0');
+
  lastLiveResult='';
  $('liveResult').textContent='';
+
  display.focus({preventScroll:true});
  setCalcSelection(1);
 }
+
 function calcDelete(){
  let text=getDisplayText();
+
  if(text==='Error')text='';
+
  let {start,end}=getCalcSelection();
+
  if(start===end&&start>0)start--;
+
  const next=text.slice(0,start)+text.slice(end);
+
  setDisplayText(next||'0');
+
  display.focus({preventScroll:true});
  setCalcSelection(start);
+
  updateLive();
 }
 
@@ -646,6 +726,7 @@ function evaluateExpression(input){
 function formatCalcResult(x){
  return Number(x.toFixed(8)).toLocaleString('en-US',{maximumFractionDigits:8});
 }
+
 function updateLive(){
  const text=getDisplayText();
  try{
@@ -656,6 +737,7 @@ function updateLive(){
   }
  }catch(e){}
 }
+
 function calculate(){
  try{
   const result=evaluateExpression(getDisplayText());
@@ -670,21 +752,47 @@ function calculate(){
  }
 }
 
+/* কার্সর অবস্থান সংরক্ষণ */
+display.addEventListener('keyup',saveCalcSelection);
+display.addEventListener('mouseup',saveCalcSelection);
+display.addEventListener('touchend',saveCalcSelection);
 display.addEventListener('input',()=>{
+ saveCalcSelection();
+
  let text=getDisplayText();
  let converted=text.replace(/\//g,'÷').replace(/\*/g,'×');
+
  if(text!==converted){
   const old=getCalcSelection();
   setDisplayText(converted);
   setCalcSelection(old.start,old.end);
  }
+
  updateLive();
 });
-display.addEventListener('keydown',e=>{
- if(e.key==='Backspace'||e.key==='Delete'){
-  setTimeout(updateLive,0);
+
+display.addEventListener('focus',()=>{
+ saveCalcSelection();
+});
+
+document.querySelector('.grid').addEventListener('pointerdown',saveCalcSelection,true);
+document.querySelector('.grid').addEventListener('mousedown',saveCalcSelection,true);
+
+document.addEventListener('selectionchange',()=>{
+ if(document.activeElement===display){
+  saveCalcSelection();
  }
 });
+
+display.addEventListener('keydown',e=>{
+ if(e.key==='Backspace'||e.key==='Delete'){
+  setTimeout(()=>{
+   saveCalcSelection();
+   updateLive();
+  },0);
+ }
+});
+
 $('calcMode').addEventListener('change',updateLive);
 
 setLanguage('bn');
