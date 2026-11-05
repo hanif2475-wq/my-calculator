@@ -26,10 +26,10 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .calc-head{display:none}
 .mode-menu{position:relative;flex:0 0 auto}
 .mode-menu>button{background:#111;color:#fff;border:0;padding:3px 9px;font-size:19px;font-weight:900;letter-spacing:2px;line-height:1.25;border-radius:6px;min-width:42px}
-.mode-pop{position:fixed;right:10px;top:90px;z-index:999;background:#fff;color:#111;border:1px solid #ccc;border-radius:9px;padding:7px;width:min(210px,calc(100vw - 20px));max-width:calc(100vw - 20px);box-shadow:0 5px 18px #0003}
+.mode-pop{position:fixed;right:8px!important;left:auto!important;top:90px;z-index:9999;background:#fff;color:#111;border:1px solid #ccc;border-radius:9px;padding:7px;width:min(210px,calc(100vw - 16px));max-width:calc(100vw - 16px);box-shadow:0 5px 18px #0003}
 .mode-pop button{display:block;width:100%;text-align:left;background:#fff;color:#111;padding:10px;font-size:14px}
 .mode-pop button:active{background:#e9f2ff}
-.calc-display{width:100%;height:clamp(150px,25vh,230px);display:flex;flex-direction:column;margin:7px 0 10px;padding:11px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
+.calc-display{width:100%;height:clamp(240px,34vh,310px);display:flex;flex-direction:column;margin:7px 0 10px;padding:11px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
 .calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:34px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
 .live-result{flex:1;min-width:0;flex-shrink:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;overflow-wrap:anywhere;white-space:nowrap}
 .live-result-row{display:flex;align-items:center;gap:8px;min-height:36px;margin-top:4px}
@@ -77,7 +77,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 #stockPanel label{margin:7px 0 3px;font-size:12px}
 #stockPanel input{padding:8px;height:38px}
 .keyboard-hint{font-size:11px;color:#666;text-align:right;margin-top:4px}
-@media(max-width:390px){body{padding:7px}.top>button{font-size:12px}.calc-display{height:clamp(140px,23vh,190px);margin:5px 0 7px;padding:9px}.grid{gap:5px}.grid button{min-height:46px;font-size:20px}.calc-expression{font-size:28px}.live-result{font-size:20px}}
+@media(max-width:390px){body{padding:7px}.top>button{font-size:12px}.calc-display{height:clamp(220px,31vh,270px);margin:5px 0 7px;padding:9px}.grid{gap:5px}.grid button{min-height:46px;font-size:20px}.calc-expression{font-size:28px}.live-result{font-size:20px}}
 @media(min-height:850px) and (min-width:390px){#remitPanel .panel{padding:10px}.result{padding:8px 0}}
 </style>
 </head>
@@ -232,8 +232,11 @@ function toggleModeMenu(){
  if(!opening){pop.classList.add('hidden');return}
  pop.classList.remove('hidden');
  const rect=button.getBoundingClientRect();
+ // Keep the options panel pinned to the viewport's right edge, not the
+ // three-dot button's left-side position inside the calculator row.
+ pop.style.left='auto';
+ pop.style.right='8px';
  pop.style.top=Math.max(8,Math.min(window.innerHeight-pop.offsetHeight-8,rect.bottom+6))+'px';
- pop.style.right=Math.max(8,window.innerWidth-rect.right)+'px';
 }
 function setCalcMode(mode){$('calcMode').value=mode;$('modePopover').classList.add('hidden');updateLive();$('modeMenuButton').textContent='|||' }
 /* Hidden select retained as the source of truth; Sequential is the default. */
