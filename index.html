@@ -26,16 +26,16 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .calc-head{display:none}
 .mode-menu{position:relative;flex:0 0 auto}
 .mode-menu>button{background:#111;color:#fff;border:0;padding:3px 9px;font-size:19px;font-weight:900;letter-spacing:2px;line-height:1.25;border-radius:6px;min-width:42px}
-.mode-pop{position:fixed;right:8px!important;left:auto!important;top:90px;z-index:9999;background:#fff;color:#111;border:1px solid #ccc;border-radius:9px;padding:7px;width:min(210px,calc(100vw - 16px));max-width:calc(100vw - 16px);box-shadow:0 5px 18px #0003}
+.mode-pop{position:absolute;left:0;right:auto;top:auto;bottom:calc(100% + 6px);z-index:100;background:#fff;color:#111;border:1px solid #ccc;border-radius:9px;padding:7px;width:185px;max-width:calc(100vw - 30px);box-shadow:0 5px 18px #0003}
 .mode-pop button{display:block;width:100%;text-align:left;background:#fff;color:#111;padding:10px;font-size:14px}
 .mode-pop button:active{background:#e9f2ff}
-.calc-display{width:100%;height:clamp(240px,34vh,310px);display:flex;flex-direction:column;margin:7px 0 10px;padding:11px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
+.calc-display{width:100%;height:clamp(145px,22vh,190px);display:flex;flex-direction:column;overflow:visible;margin:5px 0 7px;padding:8px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
 .calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:34px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
 .live-result{flex:1;min-width:0;flex-shrink:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;overflow-wrap:anywhere;white-space:nowrap}
 .live-result-row{display:flex;align-items:center;gap:8px;min-height:36px;margin-top:4px}
 #calcDisplay:focus,.calc-display:focus-within{outline:none!important;box-shadow:none!important;border-color:#bbb}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.grid button{font-size:22px;min-height:53px;padding:8px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:11px;box-shadow:0 2px 3px #0001;touch-action:manipulation}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.grid button{font-size:21px;min-height:clamp(38px,5.5vh,46px);padding:5px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:11px;box-shadow:0 2px 3px #0001;touch-action:manipulation}
 .grid button:active{background:#e9e9e9;transform:scale(.98)}
 .grid .op,.grid .eq,.grid .cross,.grid .ac{background:#f2f2f2;color:#111;font-weight:bold}
 .cross svg{width:27px;height:27px;display:block;margin:auto;fill:none;stroke:#111;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
@@ -77,7 +77,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 #stockPanel label{margin:7px 0 3px;font-size:12px}
 #stockPanel input{padding:8px;height:38px}
 .keyboard-hint{font-size:11px;color:#666;text-align:right;margin-top:4px}
-@media(max-width:390px){body{padding:7px}.top>button{font-size:12px}.calc-display{height:clamp(220px,31vh,270px);margin:5px 0 7px;padding:9px}.grid{gap:5px}.grid button{min-height:46px;font-size:20px}.calc-expression{font-size:28px}.live-result{font-size:20px}}
+@media(max-width:390px){body{padding:5px}.top{gap:4px;margin-bottom:7px}.top>button{font-size:12px;padding:8px 3px}.calc-display{height:145px;padding:7px}.grid{gap:4px}.grid button{min-height:39px;font-size:19px}.calc-expression{font-size:29px}.live-result{font-size:21px}}
 @media(min-height:850px) and (min-width:390px){#remitPanel .panel{padding:10px}.result{padding:8px 0}}
 </style>
 </head>
@@ -226,18 +226,7 @@ function setLanguage(v){
 }
 function updateHeading(){const t=T[language];$('heading').textContent=activeTab==='calc'?t.calc:activeTab==='remit'?t.remit:t.stock}
 function showTab(tab){activeTab=tab;['calc','remit','stock'].forEach(x=>{$(x+'Panel').classList.toggle('hidden',x!==tab);$(x+'Tab').classList.toggle('active',x===tab)});if(tab!=='remit')hideRemitKeypad();updateHeading();updateKeyboardButtons();window.scrollTo(0,0)}
-function toggleModeMenu(){
- const pop=$('modePopover'),button=$('modeMenuButton');
- const opening=pop.classList.contains('hidden');
- if(!opening){pop.classList.add('hidden');return}
- pop.classList.remove('hidden');
- const rect=button.getBoundingClientRect();
- // Keep the options panel pinned to the viewport's right edge, not the
- // three-dot button's left-side position inside the calculator row.
- pop.style.left='auto';
- pop.style.right='8px';
- pop.style.top=Math.max(8,Math.min(window.innerHeight-pop.offsetHeight-8,rect.bottom+6))+'px';
-}
+function toggleModeMenu(){$('modePopover').classList.toggle('hidden')}
 function setCalcMode(mode){$('calcMode').value=mode;$('modePopover').classList.add('hidden');updateLive();$('modeMenuButton').textContent='|||' }
 /* Hidden select retained as the source of truth; Sequential is the default. */
 const modeSelect=document.createElement('select');modeSelect.id='calcMode';modeSelect.className='hidden';modeSelect.innerHTML='<option value="regular">Regular (BODMAS)</option><option value="sequential" selected>Sequential</option>';$('calcPanel').appendChild(modeSelect);
@@ -324,123 +313,38 @@ function calculate(){try{const result=evaluateExpression(getDisplayText());if(re
 display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){e.preventDefault();calcClear()}});
 /* Convert keyboard operators without losing the tapped caret. */
 display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=old.replace(/\//g,'÷').replace(/\*/g,'×');if(old!==converted){display.value=converted;display.setSelectionRange(s,e);saveCalcSelection()}updateLive()});
-
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
- const buttons=panel.querySelectorAll('.utility-row');
-
- if(typeof html2canvas!=='function'){
-  alert('ছবি তৈরির লাইব্রেরি লোড হয়নি।');
-  return;
- }
-
- let host=null;
-
+ if(typeof html2canvas!=='function'){alert('ছবি তৈরির লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ দিয়ে আবার চেষ্টা করুন।');return}
+ const utility=[...panel.querySelectorAll('.utility-row')];
+ const keypads=[...panel.querySelectorAll('.remit-keypad')];
+ const oldVisibility=utility.map(x=>x.style.visibility);
+ const oldKeypadState=keypads.map(x=>x.classList.contains('hidden'));
+ utility.forEach(x=>x.style.visibility='hidden');
+ keypads.forEach(x=>x.classList.add('hidden'));
  try{
-  buttons.forEach(x=>x.style.visibility='hidden');
-
-  host=document.createElement('div');
-  host.style.cssText=`
-   position:fixed;
-   top:0;
-   left:0;
-   width:${Math.ceil(panel.getBoundingClientRect().width)}px;
-   z-index:2147483647;
-   background:#ffffff;
-   pointer-events:none;
-  `;
-
-  const clone=panel.cloneNode(true);
-  clone.classList.remove('hidden');
-  clone.style.cssText+=`
-   width:100%;
-   height:auto;
-   max-height:none;
-   overflow:visible;
-   margin:0;
-   box-sizing:border-box;
-   transform:none;
-   position:relative;
-  `;
-
-  const pop=clone.querySelector('#modePopover');
-  if(pop)pop.classList.add('hidden');
-
-  clone.querySelectorAll('.utility-row').forEach(x=>x.remove());
-
-  clone.querySelectorAll('*').forEach(el=>{
-   el.style.maxHeight='none';
-   if(getComputedStyle(el).overflowY==='auto' ||
-      getComputedStyle(el).overflowY==='scroll'){
-    el.style.overflowY='visible';
-    el.style.height='auto';
-   }
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const width=panel.getBoundingClientRect().width;
+  const canvas=await html2canvas(panel,{
+   scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0,
+   width:Math.ceil(width),height:panel.scrollHeight,
+   windowWidth:Math.max(document.documentElement.clientWidth,Math.ceil(width)),
+   windowHeight:Math.max(document.documentElement.clientHeight,panel.scrollHeight),
+   onclone:doc=>{const cloned=doc.getElementById(panel.id);if(cloned){cloned.style.width=width+'px';cloned.style.maxWidth='none';}}
   });
-
-  host.appendChild(clone);
-  document.body.appendChild(host);
-
-  await new Promise(resolve=>
-   requestAnimationFrame(()=>requestAnimationFrame(resolve))
-  );
-
-  clone.style.paddingTop='25px';
-clone.style.paddingBottom='25px';
-  clone.querySelector('#calcDisplay')?.style.setProperty('overflow','visible','important');
-clone.querySelector('#calcDisplay')?.style.setProperty('line-height','1.4','important');
-  const width=Math.ceil(clone.scrollWidth);
-  const height=Math.ceil(clone.scrollHeight);
-
-  const canvas=await html2canvas(clone,{
-   scale:2,
-   backgroundColor:'#ffffff',
-   useCORS:true,
-   logging:false,
-   scrollX:0,
-   scrollY:0,
-   width:width,
-   height:height,
-   windowWidth:width,
-   windowHeight:height
-  });
-
-  host.remove();
-  host=null;
-
-  buttons.forEach(x=>x.style.visibility='');
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+  if(!blob)throw new Error('Image creation failed');
+  const file=new File([blob],'calculator-result.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+   try{await navigator.share({files:[file],title:'Calculator result'})}
+   catch(err){if(err.name!=='AbortError')downloadImage(canvas)}
+  }else downloadImage(canvas);
+ }catch(e){alert('ছবি তৈরি করা যায়নি। আবার চেষ্টা করুন।')}
+ finally{
+  utility.forEach((x,i)=>x.style.visibility=oldVisibility[i]);
+  keypads.forEach((x,i)=>x.classList.toggle('hidden',oldKeypadState[i]));
   window.scrollTo(0,oldScroll);
-
-  canvas.toBlob(async blob=>{
-   if(!blob)return;
-
-   const file=new File(
-    [blob],
-    'calculator-result.png',
-    {type:'image/png'}
-   );
-
-   try{
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-     await navigator.share({
-      files:[file],
-      title:'Calculator Result'
-     });
-    }else{
-     alert('এই ডিভাইসে সরাসরি শেয়ার অপশন পাওয়া যাচ্ছে না।');
-    }
-   }catch(err){
-    if(err.name!=='AbortError'){
-     alert('ছবি শেয়ার করা যায়নি।');
-    }
-   }
-  },'image/png');
-
- }catch(err){
-  if(host)host.remove();
-  buttons.forEach(x=>x.style.visibility='');
-  window.scrollTo(0,oldScroll);
-  alert('ছবি তৈরি করা যায়নি। আবার চেষ্টা করুন।');
  }
 }
 function downloadImage(canvas){const a=document.createElement('a');a.download='calculator-result.png';a.href=canvas.toDataURL('image/png');a.click()}
