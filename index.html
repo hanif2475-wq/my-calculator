@@ -413,23 +413,7 @@ async function capturePage(){
    alert('ছবি শেয়ার করা যায়নি।');
   }
  }
-},'image/png');}
-   );
-
-   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{
-     await navigator.share({
-      files:[file],
-      title:'Calculator result'
-     });
-    }catch(err){
-     if(err.name!=='AbortError')downloadImage(canvas);
-    }
-   }else{
-    downloadImage(canvas);
-   }
-  },'image/png');
-
+},'image/png');
  }catch(err){
   if(host)host.remove();
   buttons.forEach(x=>x.style.visibility='');
