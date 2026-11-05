@@ -331,7 +331,28 @@ async function capturePage(){
    width:Math.ceil(width),height:panel.scrollHeight,
    windowWidth:Math.max(document.documentElement.clientWidth,Math.ceil(width)),
    windowHeight:Math.max(document.documentElement.clientHeight,panel.scrollHeight),
-   onclone:doc=>{const cloned=doc.getElementById(panel.id);if(cloned){cloned.style.width=width+'px';cloned.style.maxWidth='none';}}
+   onclone:doc=>{
+    const cloned=doc.getElementById(panel.id);
+    if(cloned){
+     cloned.style.width=width+'px';cloned.style.maxWidth='none';
+     /* Share image: expand calculator display so typed numbers are never clipped. */
+     const displayBox=cloned.querySelector('.calc-display');
+     const expression=cloned.querySelector('#calcDisplay');
+     if(displayBox){displayBox.style.height='auto';displayBox.style.minHeight='145px';displayBox.style.overflow='visible';}
+     if(expression){
+      const text=document.createElement('div');
+      text.className=expression.className;
+      text.textContent=expression.value;
+      text.style.cssText=getComputedStyle(expression).cssText;
+      text.style.display='block';text.style.flex='none';text.style.height='auto';
+      text.style.minHeight='110px';text.style.maxHeight='none';text.style.overflow='visible';
+      text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';
+      text.style.wordBreak='break-word';text.style.padding='0';text.style.margin='0';
+      cloned.querySelector('.calc-display').insertBefore(text,cloned.querySelector('.live-result-row'));
+      expression.remove();
+     }
+    }
+   }
   });
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
   if(!blob)throw new Error('Image creation failed');
