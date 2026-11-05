@@ -387,6 +387,8 @@ async function capturePage(){
 
   clone.style.paddingTop='25px';
 clone.style.paddingBottom='25px';
+  clone.querySelector('#calcDisplay')?.style.setProperty('overflow','visible','important');
+clone.querySelector('#calcDisplay')?.style.setProperty('line-height','1.4','important');
   const width=Math.ceil(clone.scrollWidth);
   const height=Math.ceil(clone.scrollHeight);
 
