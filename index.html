@@ -391,12 +391,29 @@ async function capturePage(){
   window.scrollTo(0,oldScroll);
 
   canvas.toBlob(async blob=>{
-   if(!blob)return;
+ if(!blob)return;
 
-   const file=new File(
-    [blob],
-    'calculator-result.png',
-    {type:'image/png'}
+ const file=new File(
+  [blob],
+  'calculator-result.png',
+  {type:'image/png'}
+ );
+
+ try{
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+   await navigator.share({
+    files:[file],
+    title:'Calculator Result'
+   });
+  }else{
+   alert('এই ডিভাইসে সরাসরি শেয়ার অপশন পাওয়া যাচ্ছে না।');
+  }
+ }catch(err){
+  if(err.name!=='AbortError'){
+   alert('ছবি শেয়ার করা যায়নি।');
+  }
+ }
+},'image/png');}
    );
 
    if(navigator.canShare&&navigator.canShare({files:[file]})){
