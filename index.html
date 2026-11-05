@@ -20,7 +20,7 @@ button{cursor:pointer;border:0;border-radius:9px;padding:10px;background:#2a3b53
 .hidden{display:none!important}
 label{display:block;color:#cbd5e1;font-size:13px;margin:8px 0 4px}
 input,select{width:100%;min-width:0;padding:10px;background:#0e1929;color:#fff;border:1px solid #40516a;border-radius:8px;font-size:16px}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-offset:0}
+input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 1px #9aa9ba}
 #calcPanel{background:#fff;color:#111;padding:11px;border:1px solid #ddd;box-shadow:0 3px 14px #0002}
 #calcPanel label{color:#333}
 .calc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -30,7 +30,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 .mode-pop{position:absolute;right:0;top:36px;z-index:50;background:#fff;color:#111;border:1px solid #ccc;border-radius:9px;padding:7px;min-width:185px;box-shadow:0 5px 18px #0003}
 .mode-pop button{display:block;width:100%;text-align:left;background:#fff;color:#111;padding:10px;font-size:14px}
 .mode-pop button:active{background:#e9f2ff}
-.calc-display{width:100%;height:196px;display:flex;flex-direction:column;margin:7px 0 10px;padding:11px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
+.calc-display{width:100%;height:210px;display:flex;flex-direction:column;margin:7px 0 10px;padding:11px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
 .calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:34px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
 .live-result{flex-shrink:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;overflow-wrap:anywhere;white-space:nowrap}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
@@ -76,7 +76,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 #stockPanel label{margin:7px 0 3px;font-size:12px}
 #stockPanel input{padding:8px;height:38px}
 .keyboard-hint{font-size:11px;color:#666;text-align:right;margin-top:4px}
-@media(max-width:390px){body{padding:7px}.top>button{font-size:12px}.calc-display{height:184px}.grid{gap:5px}.grid button{min-height:49px;font-size:20px}.calc-expression{font-size:30px}}
+@media(max-width:390px){body{padding:7px}.top>button{font-size:12px}.calc-display{height:198px}.grid{gap:5px}.grid button{min-height:49px;font-size:20px}.calc-expression{font-size:30px}}
 @media(min-height:850px) and (min-width:390px){#remitPanel .panel{padding:10px}.result{padding:8px 0}}
 </style>
 </head>
@@ -92,7 +92,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 
 <div id="calcPanel" class="panel">
 <div class="calc-head">
-<label id="expressionLabel">আপনার হিসাব লিখুন</label>
+<label id="expressionLabel" class="hidden"></label>
 <div class="mode-menu">
 <button type="button" id="modeMenuButton" aria-label="Calculation options" onclick="toggleModeMenu()">⋮</button>
 <div id="modePopover" class="mode-pop hidden">
@@ -105,10 +105,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 <textarea id="calcDisplay" class="calc-expression" inputmode="none" spellcheck="false" rows="3">0</textarea>
 <div id="liveResult" class="live-result"></div>
 </div>
-<div class="utility-row">
-<button type="button" id="calcKeyboardToggle" onclick="toggleKeyboard()">⌨ iPhone Keyboard</button>
-<button type="button" onclick="capturePage()">ภาพ / Share</button>
-</div>
 <div class="grid" id="calcKeys">
 <button class="ac" onclick="calcClear()">AC</button>
 <button class="cross" onclick="calcDelete()" aria-label="Delete"><svg viewBox="0 0 32 32"><path d="M11 5H27V27H11L3 16Z"/><path d="M16 12L23 20M23 12L16 20"/></svg></button>
@@ -118,6 +114,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 <button onclick="calcAdd('7')">7</button><button onclick="calcAdd('8')">8</button><button onclick="calcAdd('9')">9</button><button class="op" onclick="calcAdd('+')">+</button>
 <button onclick="calcAdd('00')">00</button><button onclick="calcAdd('0')">0</button><button onclick="calcAdd('000')">000</button><button class="op" onclick="calcAdd('.')">.</button>
 <button onclick="calcAdd('(')">(</button><button onclick="calcAdd(')')">)</button><button class="eq" style="grid-column:span 2" onclick="calculate()">=</button>
+</div>
+<div class="utility-row">
+<button type="button" id="calcKeyboardToggle" onclick="toggleKeyboard()">⌨ iPhone Keyboard</button>
+<button type="button" onclick="capturePage()">ছবি / Share</button>
 </div>
 </div>
 
@@ -151,7 +151,6 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 <div class="result"><span id="totalBenefitLabel">মোট অতিরিক্ত লাভ</span><strong id="totalBenefit">0 BDT</strong></div>
 <div class="small" id="note">বর্তমান রেট ও নিজের নির্ধারিত রেটের হিসাব আলাদা।</div>
 </div>
-<div class="utility-row"><button onclick="toggleKeyboard()" id="remitKeyboardToggle">⌨ iPhone Keyboard</button><button onclick="capturePage()">ছবি / Share</button></div>
 <div id="remitKeypad" class="remit-keypad hidden">
 <div id="keypadTitle" class="remit-keypad-title">সংখ্যা লিখুন</div>
 <div class="remit-keys">
@@ -163,6 +162,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 <button type="button" class="done" data-key="done">সম্পন্ন</button>
 </div>
 </div>
+<div class="utility-row"><button onclick="toggleKeyboard()" id="remitKeyboardToggle">⌨ iPhone Keyboard</button><button onclick="capturePage()">ছবি / Share</button></div>
 </div>
 
 <div id="stockPanel" class="hidden">
@@ -198,8 +198,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-of
 <button class="action clear" id="stockClear" onclick="clearStock()">সব হিসাব মুছুন</button>
 <div class="small" id="stockNote">এটি হিসাবের সহায়ক টুল, সরাসরি QSE বা ব্রোকারের লেনদেন নয়। সঠিক চার্জ আপনার ব্রোকারের স্টেটমেন্ট দেখে বসান।</div>
 </div>
-<div class="utility-row"><button onclick="toggleKeyboard()" id="stockKeyboardToggle">⌨ iPhone Keyboard</button><button onclick="capturePage()">ছবি / Share</button></div>
 <div id="stockKeypad" class="remit-keypad hidden"><div class="remit-keypad-title">সংখ্যা লিখুন</div><div class="remit-keys"><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key=".">.</button><button type="button" data-key="0">0</button><button type="button" data-key="back">⌫</button><button type="button" data-key="delete">Del</button><button type="button" data-key="clear">মুছুন</button><button type="button" data-key="00">00</button><button type="button" class="done" data-key="done">সম্পন্ন</button></div></div>
+<div class="utility-row"><button onclick="toggleKeyboard()" id="stockKeyboardToggle">⌨ iPhone Keyboard</button><button onclick="capturePage()">ছবি / Share</button></div>
 </div>
 </div>
 
@@ -211,8 +211,8 @@ const currencies=['BDT','QAR','USD','SAR','AED','INR','GBP','EUR','KWD','OMR','B
 $('fromCurrency').value='QAR';$('toCurrency').value='BDT';$('actualConvertedCurrency').value='BDT';$('manualConvertedCurrency').value='BDT';$('manualMainCurrency').value='BDT';
 
 const T={
-bn:{calc:'ক্যালকুলেটর',remit:'রেমিট্যান্স ক্যালকুলেটর',stock:'QSE শেয়ার ক্যালকুলেটর',calcTab:'ক্যালকুলেটর',remitTab:'রেমিট্যান্স',stockTab:'QSE শেয়ার',expression:'আপনার হিসাব লিখুন',from:'যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ',to:'যে মুদ্রায় পাবেন ও পরিমাণ (বর্তমান রেটে)',manualMain:'যে মুদ্রায় পাবেন ও পরিমাণ (নিজের নির্ধারিত রেটে)',actual:'বর্তমান মুদ্রার রেট',manual:'নিজে নির্ধারিত রেট',incentive:'প্রণোদনা (%)',clear:'সব মুছুন',charge:'চার্জ',totalCharge:'চার্জসহ মোট পরিমাণ',actualConverted:'বর্তমান রেটে প্রণোদনাসহ মোট পাওয়া টাকা',manualConverted:'নিজের নির্ধারিত রেটে প্রণোদনাসহ মোট পাওয়া টাকা',actualInc:'বর্তমান রেটে প্রণোদনার পরিমাণ',manualInc:'নিজের রেটে প্রণোদনার পরিমাণ',totalBenefit:'মোট অতিরিক্ত লাভ',note:'বর্তমান রেট ও নিজের নির্ধারিত রেটের হিসাব আলাদা। মোট অতিরিক্ত লাভ = নিজের রেটে পাওয়া টাকা − বর্তমান রেটে পাওয়া টাকা।',keypad:'সংখ্যা লিখুন',keyClear:'মুছুন',keyDone:'সম্পন্ন',stockTitle:'QSE শেয়ার ক্যালকুলেটর',stockIntro:'কাতার স্টক এক্সচেঞ্জের শেয়ার কেনা-বেচার হিসাব করুন। চার্জের হার আপনার ব্রোকারের তথ্য অনুযায়ী বসান।',company:'কোম্পানির নাম (ঐচ্ছিক)',buy1:'প্রথমবার কেনা — শেয়ারের সংখ্যা',buy1Price:'প্রথমবার কেনার দাম (প্রতি শেয়ার QAR)',buy2:'দ্বিতীয়বার কেনা — শেয়ারের সংখ্যা',buy2Price:'দ্বিতীয়বার কেনার দাম (প্রতি শেয়ার QAR)',buyFee:'কেনার চার্জ (%)',otherBuyFee:'কেনার অতিরিক্ত চার্জ (QAR)',totalQty:'মোট শেয়ার',buyValue:'শেয়ারের মোট ক্রয়মূল্য',buyCharges:'কেনার মোট চার্জ',avgPrice:'চার্জসহ গড় ক্রয়মূল্য',sellTitle:'বিক্রির হিসাব',sellQty:'কতটি শেয়ার বিক্রি করবেন',sellPrice:'বিক্রির দাম (প্রতি শেয়ার QAR)',sellFee:'বিক্রির চার্জ (%)',otherSellFee:'বিক্রির অতিরিক্ত চার্জ (QAR)',grossSell:'মোট বিক্রয়মূল্য',sellCharges:'বিক্রির মোট চার্জ',netSell:'চার্জ বাদে বিক্রির টাকা',costSold:'বিক্রি করা শেয়ারের ক্রয় খরচ',profit:'নিট লাভ / ক্ষতি',profitPercent:'লাভ / ক্ষতির হার',remaining:'অবশিষ্ট শেয়ার',stockClear:'সব হিসাব মুছুন',stockNote:'এটি হিসাবের সহায়ক টুল, সরাসরি QSE বা ব্রোকারের লেনদেন নয়। চার্জের সঠিক হার আপনার ব্রোকারের স্টেটমেন্ট দেখে বসান। কর বা অন্য চার্জ থাকলে অতিরিক্ত চার্জে যোগ করুন.'},
-en:{calc:'Calculator',remit:'Remittance Calculator',stock:'QSE Share Calculator',calcTab:'Calculator',remitTab:'Remittance',stockTab:'QSE Shares',expression:'Enter your calculation',from:'From Currency & Amount',to:'To Currency & Amount (with actual rate)',manualMain:'To Currency & Amount with Manual Rate',actual:'Actual Currency Rate',manual:'Manual Rate',incentive:'Incentive (%)',clear:'Clear All',charge:'Charge',totalCharge:'Total Amount Including Charge',actualConverted:'Total Converted Amount Including Incentive (Actual Rate)',manualConverted:'Total Converted Amount Including Incentive (Manual Rate)',actualInc:'Incentive Amount (Actual Rate)',manualInc:'Incentive Amount (Manual Rate)',totalBenefit:'Total Benefit',note:'Actual Rate and Manual Rate calculations are separate. Total Benefit = Manual Amount with Incentive − Actual Amount with Incentive.',keypad:'Enter Number',keyClear:'Clear',keyDone:'Done',stockTitle:'QSE Share Calculator',stockIntro:'Calculate Qatar Stock Exchange share purchases and sales. Enter fee rates provided by your broker.',company:'Company name (optional)',buy1:'First purchase — number of shares',buy1Price:'First purchase price (per share QAR)',buy2:'Second purchase — number of shares',buy2Price:'Second purchase price (per share QAR)',buyFee:'Purchase fee (%)',otherBuyFee:'Other purchase fees (QAR)',totalQty:'Total shares',buyValue:'Total share purchase value',buyCharges:'Total purchase charges',avgPrice:'Average cost per share including fees',sellTitle:'Sell calculation',sellQty:'Number of shares to sell',sellPrice:'Selling price (per share QAR)',sellFee:'Selling fee (%)',otherSellFee:'Other selling fees (QAR)',grossSell:'Gross sale value',sellCharges:'Total selling charges',netSell:'Sale proceeds after charges',costSold:'Purchase cost of shares sold',profit:'Net profit / loss',profitPercent:'Profit / loss percentage',remaining:'Remaining shares',stockClear:'Clear all calculations',stockNote:'This is a calculation aid, not a QSE or broker transaction. Enter the correct fees from your broker statement. Add any applicable tax or other fees under other charges.'}
+bn:{calc:'ক্যালকুলেটর',remit:'রেমিট্যান্স ক্যালকুলেটর',stock:'QSE শেয়ার ক্যালকুলেটর',calcTab:'ক্যালকুলেটর',remitTab:'রেমিট্যান্স',stockTab:'QSE শেয়ার',expression:'',keyboardNative:'⌨ iPhone Keyboard',keyboardCustom:'⌨ Custom Keyboard',share:'ছবি / Share',from:'যে মুদ্রা থেকে পাঠাবেন ও পরিমাণ',to:'যে মুদ্রায় পাবেন ও পরিমাণ (বর্তমান রেটে)',manualMain:'যে মুদ্রায় পাবেন ও পরিমাণ (নিজের নির্ধারিত রেটে)',actual:'বর্তমান মুদ্রার রেট',manual:'নিজে নির্ধারিত রেট',incentive:'প্রণোদনা (%)',clear:'সব মুছুন',charge:'চার্জ',totalCharge:'চার্জসহ মোট পরিমাণ',actualConverted:'বর্তমান রেটে প্রণোদনাসহ মোট পাওয়া টাকা',manualConverted:'নিজের নির্ধারিত রেটে প্রণোদনাসহ মোট পাওয়া টাকা',actualInc:'বর্তমান রেটে প্রণোদনার পরিমাণ',manualInc:'নিজের রেটে প্রণোদনার পরিমাণ',totalBenefit:'মোট অতিরিক্ত লাভ',note:'বর্তমান রেট ও নিজের নির্ধারিত রেটের হিসাব আলাদা। মোট অতিরিক্ত লাভ = নিজের রেটে পাওয়া টাকা − বর্তমান রেটে পাওয়া টাকা।',keypad:'সংখ্যা লিখুন',keyClear:'মুছুন',keyDone:'সম্পন্ন',stockTitle:'QSE শেয়ার ক্যালকুলেটর',stockIntro:'কাতার স্টক এক্সচেঞ্জের শেয়ার কেনা-বেচার হিসাব করুন। চার্জের হার আপনার ব্রোকারের তথ্য অনুযায়ী বসান।',company:'কোম্পানির নাম (ঐচ্ছিক)',buy1:'প্রথমবার কেনা — শেয়ারের সংখ্যা',buy1Price:'প্রথমবার কেনার দাম (প্রতি শেয়ার QAR)',buy2:'দ্বিতীয়বার কেনা — শেয়ারের সংখ্যা',buy2Price:'দ্বিতীয়বার কেনার দাম (প্রতি শেয়ার QAR)',buyFee:'কেনার চার্জ (%)',otherBuyFee:'কেনার অতিরিক্ত চার্জ (QAR)',totalQty:'মোট শেয়ার',buyValue:'শেয়ারের মোট ক্রয়মূল্য',buyCharges:'কেনার মোট চার্জ',avgPrice:'চার্জসহ গড় ক্রয়মূল্য',sellTitle:'বিক্রির হিসাব',sellQty:'কতটি শেয়ার বিক্রি করবেন',sellPrice:'বিক্রির দাম (প্রতি শেয়ার QAR)',sellFee:'বিক্রির চার্জ (%)',otherSellFee:'বিক্রির অতিরিক্ত চার্জ (QAR)',grossSell:'মোট বিক্রয়মূল্য',sellCharges:'বিক্রির মোট চার্জ',netSell:'চার্জ বাদে বিক্রির টাকা',costSold:'বিক্রি করা শেয়ারের ক্রয় খরচ',profit:'নিট লাভ / ক্ষতি',profitPercent:'লাভ / ক্ষতির হার',remaining:'অবশিষ্ট শেয়ার',stockClear:'সব হিসাব মুছুন',stockNote:'এটি হিসাবের সহায়ক টুল, সরাসরি QSE বা ব্রোকারের লেনদেন নয়। চার্জের সঠিক হার আপনার ব্রোকারের স্টেটমেন্ট দেখে বসান। কর বা অন্য চার্জ থাকলে অতিরিক্ত চার্জে যোগ করুন.'},
+en:{calc:'Calculator',remit:'Remittance Calculator',stock:'QSE Share Calculator',calcTab:'Calculator',remitTab:'Remittance',stockTab:'QSE Shares',expression:'',keyboardNative:'⌨ iPhone Keyboard',keyboardCustom:'⌨ Custom Keyboard',share:'Image / Share',from:'From Currency & Amount',to:'To Currency & Amount (with actual rate)',manualMain:'To Currency & Amount with Manual Rate',actual:'Actual Currency Rate',manual:'Manual Rate',incentive:'Incentive (%)',clear:'Clear All',charge:'Charge',totalCharge:'Total Amount Including Charge',actualConverted:'Total Converted Amount Including Incentive (Actual Rate)',manualConverted:'Total Converted Amount Including Incentive (Manual Rate)',actualInc:'Incentive Amount (Actual Rate)',manualInc:'Incentive Amount (Manual Rate)',totalBenefit:'Total Benefit',note:'Actual Rate and Manual Rate calculations are separate. Total Benefit = Manual Amount with Incentive − Actual Amount with Incentive.',keypad:'Enter Number',keyClear:'Clear',keyDone:'Done',stockTitle:'QSE Share Calculator',stockIntro:'Calculate Qatar Stock Exchange share purchases and sales. Enter fee rates provided by your broker.',company:'Company name (optional)',buy1:'First purchase — number of shares',buy1Price:'First purchase price (per share QAR)',buy2:'Second purchase — number of shares',buy2Price:'Second purchase price (per share QAR)',buyFee:'Purchase fee (%)',otherBuyFee:'Other purchase fees (QAR)',totalQty:'Total shares',buyValue:'Total share purchase value',buyCharges:'Total purchase charges',avgPrice:'Average cost per share including fees',sellTitle:'Sell calculation',sellQty:'Number of shares to sell',sellPrice:'Selling price (per share QAR)',sellFee:'Selling fee (%)',otherSellFee:'Other selling fees (QAR)',grossSell:'Gross sale value',sellCharges:'Total selling charges',netSell:'Sale proceeds after charges',costSold:'Purchase cost of shares sold',profit:'Net profit / loss',profitPercent:'Profit / loss percentage',remaining:'Remaining shares',stockClear:'Clear all calculations',stockNote:'This is a calculation aid, not a QSE or broker transaction. Enter the correct fees from your broker statement. Add any applicable tax or other fees under other charges.'}
 };
 let language='bn',keyboardMode='custom',activeTab='calc';
 function setLanguage(v){
@@ -220,8 +220,10 @@ function setLanguage(v){
  $('calcTab').textContent=t.calcTab;$('remitTab').textContent=t.remitTab;$('stockTab').textContent=t.stockTab;$('expressionLabel').textContent=t.expression;
  const map={fromLabel:'from',toLabel:'to',manualMainLabel:'manualMain',actualLabel:'actual',manualLabel:'manual',incentiveLabel:'incentive',clearButton:'clear',chargeInputLabel:'charge',totalChargeLabel:'totalCharge',actualConvertedLabel:'actualConverted',manualConvertedLabel:'manualConverted',actualIncentiveLabel:'actualInc',manualIncentiveLabel:'manualInc',chargeResultLabel:'charge',totalBenefitLabel:'totalBenefit',note:'note',keypadTitle:'keypad',stockTitle:'stockTitle',stockIntro:'stockIntro',companyLabel:'company',buy1Label:'buy1',buy1PriceLabel:'buy1Price',buy2Label:'buy2',buy2PriceLabel:'buy2Price',buyFeeLabel:'buyFee',otherBuyFeeLabel:'otherBuyFee',totalQtyLabel:'totalQty',buyValueLabel:'buyValue',buyChargesLabel:'buyCharges',avgPriceLabel:'avgPrice',sellTitle:'sellTitle',sellQtyLabel:'sellQty',sellPriceLabel:'sellPrice',sellFeeLabel:'sellFee',otherSellFeeLabel:'otherSellFee',grossSellLabel:'grossSell',sellChargesLabel:'sellCharges',netSellLabel:'netSell',costSoldLabel:'costSold',profitLabel:'profit',profitPercentLabel:'profitPercent',remainingLabel:'remaining',stockClear:'stockClear',stockNote:'stockNote'};
  Object.keys(map).forEach(id=>$(id).textContent=t[map[id]]);
- $('companyName').placeholder=v==='bn'?'যেমন: QIB':'Example: QIB';document.querySelector('[data-key="clear"]').textContent=t.keyClear;document.querySelector('[data-key="done"]').textContent=t.keyDone;
- updateHeading();
+ $('companyName').placeholder=v==='bn'?'যেমন: QIB':'Example: QIB';
+ document.querySelector('[data-key="clear"]').textContent=t.keyClear;document.querySelector('[data-key="done"]').textContent=t.keyDone;
+ document.querySelectorAll('.utility-row button[onclick="capturePage()"]').forEach(b=>b.textContent=t.share);
+ updateKeyboardButtons();updateHeading();
 }
 function updateHeading(){const t=T[language];$('heading').textContent=activeTab==='calc'?t.calc:activeTab==='remit'?t.remit:t.stock}
 function showTab(tab){activeTab=tab;['calc','remit','stock'].forEach(x=>{$(x+'Panel').classList.toggle('hidden',x!==tab);$(x+'Tab').classList.toggle('active',x===tab)});if(tab!=='remit')hideRemitKeypad();updateHeading();updateKeyboardButtons();window.scrollTo(0,0)}
@@ -233,11 +235,12 @@ function toggleKeyboard(){keyboardMode=keyboardMode==='custom'?'native':'custom'
 function applyKeyboardMode(){
  const native=keyboardMode==='native';
  $('calcDisplay').setAttribute('inputmode',native?'text':'none');
- numericFields.forEach(id=>$(id).setAttribute('inputmode',native?'decimal':'none'));
- stockFields.forEach(id=>$(id).setAttribute('inputmode',native?'decimal':'none'));
+ numericFields.forEach(id=>$(id).setAttribute('inputmode',native?'text':'none'));
+ stockFields.forEach(id=>$(id).setAttribute('inputmode',native?'text':'none'));
+ $('companyName').setAttribute('inputmode','text');
  $('remitKeypad').classList.toggle('hidden',native||activeTab!=='remit');$('stockKeypad').classList.toggle('hidden',native||activeTab!=='stock');
 }
-function updateKeyboardButtons(){const label=keyboardMode==='custom'?'⌨ iPhone Keyboard':'⌨ Custom Keyboard';['calcKeyboardToggle','remitKeyboardToggle','stockKeyboardToggle'].forEach(id=>$(id).textContent=label)}
+function updateKeyboardButtons(){const label=keyboardMode==='custom'?T[language].keyboardNative:T[language].keyboardCustom;['calcKeyboardToggle','remitKeyboardToggle','stockKeyboardToggle'].forEach(id=>$(id).textContent=label)}
 function n(id){let v=$(id).value.replace(/,/g,'').trim();if(!v||v==='-'||v==='.')return 0;let x=Number(v);return Number.isFinite(x)?x:0}
 function fmt(x){return Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:4,useGrouping:true}):'0'}
 function setValue(id,x){if(document.activeElement!==$(id))$(id).value=fmt(x)}
@@ -314,15 +317,19 @@ display.addEventListener('input',()=>{const s=display.selectionStart,e=display.s
 function capturePage(){
  const panel=$(activeTab+'Panel'),oldScroll=window.scrollY;
  if(typeof html2canvas!=='function'){alert('ছবি তৈরির লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ দিয়ে আবার চেষ্টা করুন।');return}
- const buttons=panel.querySelectorAll('.utility-row');buttons.forEach(x=>x.style.visibility='hidden');
+ const buttons=panel.querySelectorAll('.utility-row'),keypads=panel.querySelectorAll('.remit-keypad');
+ buttons.forEach(x=>x.style.visibility='hidden');
+ const keypadStates=[...keypads].map(x=>x.classList.contains('hidden'));
+ keypads.forEach(x=>x.classList.add('hidden'));
+ const restoreCaptureUI=()=>{buttons.forEach(x=>x.style.visibility='');keypads.forEach((x,i)=>x.classList.toggle('hidden',keypadStates[i]));window.scrollTo(0,oldScroll)};
  html2canvas(panel,{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0,windowWidth:Math.max(document.documentElement.clientWidth,560)}).then(canvas=>{
-  buttons.forEach(x=>x.style.visibility='');window.scrollTo(0,oldScroll);
+  restoreCaptureUI();
   canvas.toBlob(async blob=>{
    if(!blob)return;const file=new File([blob],'calculator-result.png',{type:'image/png'});
    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'Calculator result'})}catch(err){if(err.name!=='AbortError')downloadImage(canvas)}}
    else downloadImage(canvas);
   },'image/png');
- }).catch(()=>{buttons.forEach(x=>x.style.visibility='');alert('ছবি তৈরি করা যায়নি। আবার চেষ্টা করুন।')});
+ }).catch(()=>{restoreCaptureUI();alert('ছবি তৈরি করা যায়নি। আবার চেষ্টা করুন।')});
 }
 function downloadImage(canvas){const a=document.createElement('a');a.download='calculator-result.png';a.href=canvas.toDataURL('image/png');a.click()}
 document.addEventListener('click',e=>{if(!e.target.closest('.mode-menu'))$('modePopover').classList.add('hidden')});
