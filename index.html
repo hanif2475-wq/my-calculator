@@ -324,6 +324,7 @@ function calculate(){try{const result=evaluateExpression(getDisplayText());if(re
 display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){e.preventDefault();calcClear()}});
 /* Convert keyboard operators without losing the tapped caret. */
 display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=old.replace(/\//g,'÷').replace(/\*/g,'×');if(old!==converted){display.value=converted;display.setSelectionRange(s,e);saveCalcSelection()}updateLive()});
+
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
@@ -339,14 +340,12 @@ async function capturePage(){
  try{
   buttons.forEach(x=>x.style.visibility='hidden');
 
-  const rect=panel.getBoundingClientRect();
-
   host=document.createElement('div');
   host.style.cssText=`
    position:fixed;
    top:0;
    left:0;
-   width:${Math.ceil(rect.width)}px;
+   width:${Math.ceil(panel.getBoundingClientRect().width)}px;
    z-index:2147483647;
    background:#ffffff;
    pointer-events:none;
@@ -354,14 +353,30 @@ async function capturePage(){
 
   const clone=panel.cloneNode(true);
   clone.classList.remove('hidden');
-  clone.style.width='100%';
-  clone.style.margin='0';
-  clone.style.boxSizing='border-box';
+  clone.style.cssText+=`
+   width:100%;
+   height:auto;
+   max-height:none;
+   overflow:visible;
+   margin:0;
+   box-sizing:border-box;
+   transform:none;
+   position:relative;
+  `;
 
   const pop=clone.querySelector('#modePopover');
   if(pop)pop.classList.add('hidden');
 
   clone.querySelectorAll('.utility-row').forEach(x=>x.remove());
+
+  clone.querySelectorAll('*').forEach(el=>{
+   el.style.maxHeight='none';
+   if(getComputedStyle(el).overflowY==='auto' ||
+      getComputedStyle(el).overflowY==='scroll'){
+    el.style.overflowY='visible';
+    el.style.height='auto';
+   }
+  });
 
   host.appendChild(clone);
   document.body.appendChild(host);
@@ -370,6 +385,9 @@ async function capturePage(){
    requestAnimationFrame(()=>requestAnimationFrame(resolve))
   );
 
+  const width=Math.ceil(clone.scrollWidth);
+  const height=Math.ceil(clone.scrollHeight);
+
   const canvas=await html2canvas(clone,{
    scale:2,
    backgroundColor:'#ffffff',
@@ -377,43 +395,43 @@ async function capturePage(){
    logging:false,
    scrollX:0,
    scrollY:0,
-   width:Math.ceil(clone.getBoundingClientRect().width),
-   height:Math.ceil(clone.getBoundingClientRect().height),
-   windowWidth:Math.max(window.innerWidth,Math.ceil(rect.width)),
-   windowHeight:Math.max(window.innerHeight,clone.scrollHeight+100)
+   width:width,
+   height:height,
+   windowWidth:width,
+   windowHeight:height
   });
 
   host.remove();
   host=null;
 
   buttons.forEach(x=>x.style.visibility='');
-
   window.scrollTo(0,oldScroll);
 
   canvas.toBlob(async blob=>{
- if(!blob)return;
+   if(!blob)return;
 
- const file=new File(
-  [blob],
-  'calculator-result.png',
-  {type:'image/png'}
- );
+   const file=new File(
+    [blob],
+    'calculator-result.png',
+    {type:'image/png'}
+   );
 
- try{
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-   await navigator.share({
-    files:[file],
-    title:'Calculator Result'
-   });
-  }else{
-   alert('এই ডিভাইসে সরাসরি শেয়ার অপশন পাওয়া যাচ্ছে না।');
-  }
- }catch(err){
-  if(err.name!=='AbortError'){
-   alert('ছবি শেয়ার করা যায়নি।');
-  }
- }
-},'image/png');
+   try{
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+     await navigator.share({
+      files:[file],
+      title:'Calculator Result'
+     });
+    }else{
+     alert('এই ডিভাইসে সরাসরি শেয়ার অপশন পাওয়া যাচ্ছে না।');
+    }
+   }catch(err){
+    if(err.name!=='AbortError'){
+     alert('ছবি শেয়ার করা যায়নি।');
+    }
+   }
+  },'image/png');
+
  }catch(err){
   if(host)host.remove();
   buttons.forEach(x=>x.style.visibility='');
