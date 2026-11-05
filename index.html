@@ -385,6 +385,8 @@ async function capturePage(){
    requestAnimationFrame(()=>requestAnimationFrame(resolve))
   );
 
+  clone.style.paddingTop='25px';
+clone.style.paddingBottom='25px';
   const width=Math.ceil(clone.scrollWidth);
   const height=Math.ceil(clone.scrollHeight);
 
