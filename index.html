@@ -33,8 +33,8 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .mode-pop button:active{background:#e9f2ff}
 .calc-display{width:100%;flex:1 1 auto;height:auto;min-height:225px;display:flex;flex-direction:column;overflow:visible;margin:5px 0 8px;padding:8px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
 .calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
-.live-result{flex:1;min-width:0;flex-shrink:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;overflow-wrap:anywhere;white-space:nowrap}
-.live-result-row{display:flex;align-items:center;gap:8px;min-height:36px;margin-top:4px}
+.live-result{flex:1 1 0;min-width:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.live-result-row{display:flex;align-items:flex-start;gap:8px;width:100%;min-width:0;min-height:36px;margin-top:4px}
 #calcDisplay:focus,.calc-display:focus-within{outline:none!important;box-shadow:none!important;border-color:#bbb}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:0;flex:0 0 auto}
 .grid button{font-size:21px;min-height:clamp(38px,5.5vh,46px);padding:5px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:11px;box-shadow:0 2px 3px #0001;touch-action:manipulation}
@@ -337,21 +337,36 @@ async function capturePage(){
     const cloned=doc.getElementById(panel.id);
     if(cloned){
      cloned.style.width=width+'px';cloned.style.maxWidth='none';
-     /* Share image: expand calculator display so typed numbers are never clipped. */
-     const displayBox=cloned.querySelector('.calc-display');
+     /* Share image must preserve the exact on-screen display geometry. */
      const expression=cloned.querySelector('#calcDisplay');
-     if(displayBox){displayBox.style.height='auto';displayBox.style.minHeight='210px';displayBox.style.overflow='visible';}
      if(expression){
-      const text=document.createElement('div');
+      const text=doc.createElement('div');
       text.className=expression.className;
       text.textContent=expression.value;
       const cs=doc.defaultView.getComputedStyle(expression);
-      text.style.font=cs.font;text.style.fontSize=cs.fontSize;text.style.lineHeight=cs.lineHeight;
-      text.style.color=cs.color;text.style.textAlign=cs.textAlign;text.style.fontFamily=cs.fontFamily;
-      text.style.display='block';text.style.flex='none';text.style.width='100%';text.style.height='auto';
-      text.style.minHeight='110px';text.style.maxHeight='none';text.style.overflow='visible';
-      text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';
-      text.style.wordBreak='break-word';text.style.padding='0';text.style.margin='0';
+      text.style.cssText=expression.getAttribute('style')||'';
+      text.style.font=cs.font;
+      text.style.fontSize=cs.fontSize;
+      text.style.fontFamily=cs.fontFamily;
+      text.style.fontWeight=cs.fontWeight;
+      text.style.lineHeight=cs.lineHeight;
+      text.style.letterSpacing=cs.letterSpacing;
+      text.style.color=cs.color;
+      text.style.textAlign=cs.textAlign;
+      text.style.whiteSpace='pre-wrap';
+      text.style.overflowWrap='anywhere';
+      text.style.wordBreak='break-word';
+      text.style.boxSizing=cs.boxSizing;
+      text.style.width=expression.getBoundingClientRect().width+'px';
+      text.style.height=expression.getBoundingClientRect().height+'px';
+      text.style.minHeight=cs.minHeight;
+      text.style.maxHeight=cs.maxHeight;
+      text.style.flex=cs.flex;
+      text.style.overflow='hidden';
+      text.style.padding=cs.padding;
+      text.style.margin=cs.margin;
+      text.style.border=cs.border;
+      text.style.display='block';
       cloned.querySelector('.calc-display').insertBefore(text,cloned.querySelector('.live-result-row'));
       expression.remove();
      }
