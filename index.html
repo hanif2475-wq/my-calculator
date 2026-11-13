@@ -32,15 +32,15 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .mode-pop button{display:block;width:100%;text-align:left;background:#fff;color:#111;padding:10px;font-size:14px}
 .mode-pop button:active{background:#e9f2ff}
 .calc-display{width:100%;flex:1 1 auto;height:auto;min-height:225px;display:flex;flex-direction:column;overflow:visible;margin:5px 0 8px;padding:8px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
-.calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:auto;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
+.calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:hidden;overflow-wrap:normal;word-break:normal;white-space:pre;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
 .live-result{flex:1 1 0;min-width:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 .live-result-row{display:flex;align-items:flex-start;gap:8px;width:100%;min-width:0;min-height:36px;margin-top:4px}
 #calcDisplay:focus,.calc-display:focus-within{outline:none!important;box-shadow:none!important;border-color:#bbb}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:0;flex:0 0 auto}
-.grid button{font-size:21px;min-height:clamp(38px,5.5vh,46px);padding:5px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:11px;box-shadow:0 2px 3px #0001;touch-action:manipulation}
+.grid button{font-size:22px;min-height:clamp(50px,6.5vh,58px);padding:7px 3px;background:#fff;color:#111;border:1px solid #d5d5d5;border-radius:11px;box-shadow:0 2px 3px #0001;touch-action:manipulation}
 .grid button:active{background:#e9e9e9;transform:scale(.98)}
 .grid .op,.grid .eq,.grid .cross,.grid .ac{background:#f2f2f2;color:#111;font-weight:bold}
-.cross svg{width:27px;height:27px;display:block;margin:auto;fill:none;stroke:#111;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
+.cross svg{width:29px;height:29px;display:block;margin:auto;fill:none;stroke:#111;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
 .panel-white{background:#fff;color:#111;border:1px solid #ddd;box-shadow:0 3px 14px #0001}
 #remitPanel label,#stockPanel label{color:#333}
 #remitPanel input,#remitPanel select,#stockPanel input,#stockPanel select{background:#fff;color:#111;border-color:#bbb}
@@ -79,7 +79,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 #stockPanel label{margin:7px 0 3px;font-size:12px}
 #stockPanel input{padding:8px;height:38px}
 .keyboard-hint{font-size:11px;color:#666;text-align:right;margin-top:4px}
-@media(max-width:390px){body{padding:5px 5px 2px}.top{gap:4px;margin-bottom:7px}.top>button{font-size:12px;padding:8px 3px}#calcPanel{min-height:calc(100dvh - 52px)}.calc-display{min-height:215px;padding:7px}.grid{gap:2px}.calc-expression{font-size:31px}.live-result{font-size:21px}}
+@media(max-width:390px){body{padding:5px 5px 2px}.top{gap:4px;margin-bottom:7px}.top>button{font-size:12px;padding:8px 3px}#calcPanel{min-height:calc(100dvh - 52px)}.calc-display{min-height:215px;padding:7px}.grid{gap:2px}.calc-expression{font-size:31px}.grid button{min-height:clamp(48px,6.2vh,55px)}.live-result{font-size:21px}}
 @media(min-height:850px) and (min-width:390px){#remitPanel .panel{padding:10px}.result{padding:8px 0}}
 </style>
 </head>
@@ -290,15 +290,49 @@ function clearStock(){['companyName','buyQty1','buyPrice1','buyQty2','buyPrice2'
 /* Calculator: textarea-native caret plus a saved insertion point for keypad taps. */
 const display=$('calcDisplay');let calcCaretStart=1,calcCaretEnd=1,lastLiveResult='';
 function getDisplayText(){return display.value}
-function setDisplayText(value){display.value=value}
+function setDisplayText(value){display.value=value;fitCalcExpression()}
+function fitCalcExpression(){
+ if(!display)return;
+ const base=window.matchMedia('(max-width:390px)').matches?31:37;
+ const min=13, available=Math.max(24,display.clientWidth-8);
+ const cs=getComputedStyle(display);
+ const canvas=fitCalcExpression.canvas||(fitCalcExpression.canvas=document.createElement('canvas'));
+ const ctx=canvas.getContext('2d');
+ const value=display.value.replace(/[\r\n]/g,' ');
+ const family=cs.fontFamily||'Arial,sans-serif', weight=cs.fontWeight||'400';
+ const spacing=parseFloat(cs.letterSpacing)||0;
+ function widthAt(size){
+  ctx.font=`${cs.fontStyle||'normal'} ${weight} ${size}px ${family}`;
+  return ctx.measureText(value).width+Math.max(0,value.length-1)*spacing;
+ }
+ let size=base;
+ if(widthAt(size)>available){
+  let low=min,high=base;
+  while(low<high){const mid=Math.ceil((low+high)/2);if(widthAt(mid)<=available)low=mid;else high=mid-1;}
+  size=low;
+ }
+ display.style.fontSize=size+'px';
+ display.style.whiteSpace='pre';
+ display.style.overflowX='hidden';
+}
 function saveCalcSelection(){if(document.activeElement===display){calcCaretStart=display.selectionStart??display.value.length;calcCaretEnd=display.selectionEnd??display.value.length}}
 function getCalcSelection(){const len=display.value.length;return{start:Math.max(0,Math.min(calcCaretStart,len)),end:Math.max(0,Math.min(calcCaretEnd,len))}}
 function setCalcSelection(start,end=start){const len=display.value.length;calcCaretStart=Math.max(0,Math.min(start,len));calcCaretEnd=Math.max(0,Math.min(end,len));if(document.activeElement!==display)display.focus({preventScroll:true});try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}requestAnimationFrame(()=>{try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}})}
-['click','keyup','select','touchend','pointerup','mouseup','input'].forEach(ev=>display.addEventListener(ev,()=>{saveCalcSelection();if(ev==='input')updateLive()}));
+['click','keyup','select','touchend','pointerup','mouseup','input'].forEach(ev=>display.addEventListener(ev,()=>{saveCalcSelection();if(ev==='input'){updateLive();fitCalcExpression()}}));
 document.addEventListener('selectionchange',saveCalcSelection);
 $('calcKeys').addEventListener('pointerdown',e=>{if(e.target.closest('button')){saveCalcSelection();e.preventDefault()}},true);
 $('calcKeys').addEventListener('touchstart',e=>{if(e.target.closest('button')){saveCalcSelection()}},{capture:true,passive:true});
-function calcAdd(value){let text=getDisplayText();if(text==='Error')text='';let{start,end}=getCalcSelection();if(text.trim()==='0'&&/^\d+$/.test(value)){text='';start=end=0}const next=text.slice(0,start)+value+text.slice(end);setDisplayText(next);setCalcSelection(start+value.length);updateLive()}
+function calcAdd(value){
+ let text=getDisplayText();if(text==='Error')text='';let{start,end}=getCalcSelection();
+ if(text.trim()==='0'&&/^\d+$/.test(value)){text='';start=end=0}
+ const operators=['+','−','-','×','÷','*','/'];
+ // Replace only an accidental operator at the caret; preserve unary signs after an opening parenthesis.
+ if(operators.includes(value)&&start===end&&start>0&&operators.includes(text[start-1])&&text[start-1]!=='('){
+  text=text.slice(0,start-1)+text.slice(start);start--;end=start;
+ }
+ const next=text.slice(0,start)+value+text.slice(end);
+ setDisplayText(next);setCalcSelection(start+value.length);updateLive();fitCalcExpression();
+}
 function calcClear(){setDisplayText('0');lastLiveResult='';$('liveResult').textContent='';setCalcSelection(1)}
 function calcDelete(){let text=getDisplayText();if(text==='Error')text='';let{start,end}=getCalcSelection();if(start===end&&start>0)start--;const next=text.slice(0,start)+text.slice(end);setDisplayText(next||'0');setCalcSelection(start);updateLive()}
 function evaluateExpression(input){
@@ -314,7 +348,9 @@ function updateLive(){try{const result=evaluateExpression(getDisplayText());if(r
 function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());setCalcSelection(display.value.length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
 display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){e.preventDefault();calcClear()}});
 /* Convert keyboard operators without losing the tapped caret. */
-display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=old.replace(/\//g,'÷').replace(/\*/g,'×');if(old!==converted){display.value=converted;display.setSelectionRange(s,e);saveCalcSelection()}updateLive()});
+display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=old.replace(/\//g,'÷').replace(/\*/g,'×');if(old!==converted){display.value=converted;display.setSelectionRange(s,e);saveCalcSelection()}updateLive();fitCalcExpression()});
+window.addEventListener('resize',fitCalcExpression);
+window.addEventListener('orientationchange',()=>requestAnimationFrame(fitCalcExpression));
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
@@ -389,7 +425,7 @@ async function capturePage(){
 }
 function downloadImage(canvas){const a=document.createElement('a');a.download='calculator-result.png';a.href=canvas.toDataURL('image/png');a.click()}
 document.addEventListener('click',e=>{if(!e.target.closest('.mode-menu'))$('modePopover').classList.add('hidden')});
-setCalcMode('sequential');setLanguage('bn');applyKeyboardMode();updateKeyboardButtons();updateRemit('settings');updateStock();updateLive();
+setCalcMode('sequential');setLanguage('bn');fitCalcExpression();applyKeyboardMode();updateKeyboardButtons();updateRemit('settings');updateStock();updateLive();
 </script>
 </body>
 </html>
