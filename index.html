@@ -301,18 +301,20 @@ function setDisplayText(value){display.value=value;fitCalcExpression()}
 function fitCalcExpression(){
  if(!display)return;
  const base=window.matchMedia('(max-width:390px)').matches?31:37;
- const min=16, available=Math.max(24,display.clientWidth-8);
+ // প্রথম লাইনের পুরো হিসাব কিছুটা ছোট হবে; ন্যূনতম সাইজে পৌঁছালে আর ছোট হবে না।
+ const min=window.matchMedia('(max-width:390px)').matches?24:27;
+ const available=Math.max(24,display.clientWidth-16);
  const cs=getComputedStyle(display);
  const canvas=fitCalcExpression.canvas||(fitCalcExpression.canvas=document.createElement('canvas'));
  const ctx=canvas.getContext('2d');
- // Fit only the longest unbreakable token (normally a number), not the whole expression.
- const tokens=display.value.split(/\s+/).filter(Boolean);
  const family=cs.fontFamily||'Arial,sans-serif', weight=cs.fontWeight||'400';
  const spacing=parseFloat(cs.letterSpacing)||0;
- const longest=tokens.reduce((a,b)=>b.length>a.length?b:a,'');
- const widthAt=size=>{ctx.font=`${cs.fontStyle||'normal'} ${weight} ${size}px ${family}`;return ctx.measureText(longest).width+Math.max(0,longest.length-1)*spacing};
+ // Measure the current first line as a whole, not each number separately.
+ const firstLine=(display.value.split('\n')[0]||'');
+ const widthAt=size=>{ctx.font=`${cs.fontStyle||'normal'} ${weight} ${size}px ${family}`;return ctx.measureText(firstLine).width+Math.max(0,firstLine.length-1)*spacing};
  let size=base;
  if(widthAt(base)>available){let low=min,high=base;while(low<high){const mid=Math.ceil((low+high)/2);if(widthAt(mid)<=available)low=mid;else high=mid-1}size=low}
+ // Once minimum size is reached, native wrapping moves the next whole number to the next line.
  display.style.fontSize=size+'px';
  display.style.whiteSpace='pre-wrap';display.style.overflowX='hidden';display.style.wordBreak='keep-all';display.style.overflowWrap='normal';
 }
