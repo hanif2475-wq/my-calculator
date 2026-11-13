@@ -32,7 +32,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .mode-pop button{display:block;width:100%;text-align:left;background:#fff;color:#111;padding:10px;font-size:14px}
 .mode-pop button:active{background:#e9f2ff}
 .calc-display{width:100%;flex:1 1 0;height:auto;min-height:150px;display:flex;flex-direction:column;overflow:visible;margin:5px 0 8px;padding:8px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
-.calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:hidden;overflow-wrap:normal;word-break:keep-all;white-space:pre-wrap;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
+.calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overflow-wrap:normal;word-break:keep-all;white-space:pre-wrap;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
 .live-result{flex:1 1 0;min-width:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 .live-result-row{display:flex;align-items:flex-start;gap:8px;width:100%;min-width:0;min-height:36px;margin-top:4px}
 #calcDisplay:focus,.calc-display:focus-within{outline:none!important;box-shadow:none!important;border-color:#bbb}
@@ -330,8 +330,8 @@ function formatForWrap(value){
 function formattedCaretIndex(value,index){return formatForWrap(value.slice(0,index)).length}
 function saveCalcSelection(){if(document.activeElement===display){calcCaretStart=display.selectionStart??display.value.length;calcCaretEnd=display.selectionEnd??display.value.length}}
 function getCalcSelection(){const len=display.value.length;return{start:Math.max(0,Math.min(calcCaretStart,len)),end:Math.max(0,Math.min(calcCaretEnd,len))}}
-function setCalcSelection(start,end=start){const len=display.value.length;calcCaretStart=Math.max(0,Math.min(start,len));calcCaretEnd=Math.max(0,Math.min(end,len));if(document.activeElement!==display)display.focus({preventScroll:true});try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}requestAnimationFrame(()=>{try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}})}
-['click','keyup','select','touchend','pointerup','mouseup','input'].forEach(ev=>display.addEventListener(ev,()=>{saveCalcSelection();if(ev==='input'){updateLive();fitCalcExpression()}}));
+function setCalcSelection(start,end=start){const len=display.value.length;calcCaretStart=Math.max(0,Math.min(start,len));calcCaretEnd=Math.max(0,Math.min(end,len));if(document.activeElement!==display)display.focus({preventScroll:true});try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}requestAnimationFrame(()=>{try{display.setSelectionRange(calcCaretStart,calcCaretEnd);display.scrollTop=display.scrollHeight}catch(e){}})}
+['click','keyup','select','touchend','pointerup','mouseup','input'].forEach(ev=>display.addEventListener(ev,()=>{saveCalcSelection();if(ev==='input'){updateLive();fitCalcExpression();requestAnimationFrame(()=>{display.scrollTop=display.scrollHeight})}}));
 window.addEventListener('resize',fitCalcExpression);window.addEventListener('orientationchange',()=>requestAnimationFrame(fitCalcExpression));
 document.addEventListener('selectionchange',saveCalcSelection);
 $('calcKeys').addEventListener('pointerdown',e=>{if(e.target.closest('button')){saveCalcSelection();e.preventDefault()}},true);
@@ -367,7 +367,7 @@ function updateLive(){try{const result=evaluateExpression(getDisplayText());if(r
 function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());setCalcSelection(display.value.length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
 display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){e.preventDefault();calcClear()}});
 /* Convert keyboard operators without losing the tapped caret. */
-display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=formatForWrap(old.replace(/\//g,'÷').replace(/\*/g,'×'));if(old!==converted){display.value=converted;const ns=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),s);const ne=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),e);try{display.setSelectionRange(ns,ne)}catch(err){}saveCalcSelection()}updateLive();fitCalcExpression()});
+display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=formatForWrap(old.replace(/\//g,'÷').replace(/\*/g,'×'));if(old!==converted){display.value=converted;const ns=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),s);const ne=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),e);try{display.setSelectionRange(ns,ne)}catch(err){}saveCalcSelection()}updateLive();fitCalcExpression();requestAnimationFrame(()=>{display.scrollTop=display.scrollHeight})});
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
