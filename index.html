@@ -302,7 +302,7 @@ function fitCalcExpression(){
  if(!display)return;
  const base=window.matchMedia('(max-width:390px)').matches?31:37;
  // প্রথম লাইনের পুরো হিসাব কিছুটা ছোট হবে; ন্যূনতম সাইজে পৌঁছালে আর ছোট হবে না।
- const min=window.matchMedia('(max-width:390px)').matches?24:27;
+ const min=window.matchMedia('(max-width:390px)').matches?19:21;
  const available=Math.max(24,display.clientWidth-16);
  const cs=getComputedStyle(display);
  const canvas=fitCalcExpression.canvas||(fitCalcExpression.canvas=document.createElement('canvas'));
@@ -327,7 +327,16 @@ function formatForWrap(value){
   if(isOp&&!unary){out=out.replace(/\s+$/,'')+' '+ch+' ';}
   else out+=ch;
  }
- return out.replace(/ {2,}/g,' ').replace(/\s+([)])/g,'$1').replace(/([(])\s+/g,'$1');
+ out=out.replace(/ {2,}/g,' ').replace(/\s+([)])/g,'$1').replace(/([(])\s+/g,'$1');
+ // Wrap by character count regardless of whether operators are present.
+ const lines=[]; let line='';
+ for(const ch of out){
+  if(ch==='\\n'){lines.push(line.trimEnd());line='';continue;}
+  if(line.length>=25){lines.push(line.trimEnd());line='';}
+  line+=ch;
+ }
+ if(line || !lines.length) lines.push(line);
+ return lines.join('\\n');
 }
 function formattedCaretIndex(value,index){return formatForWrap(value.slice(0,index)).length}
 function saveCalcSelection(){if(document.activeElement===display){calcCaretStart=display.selectionStart??display.value.length;calcCaretEnd=display.selectionEnd??display.value.length}}
