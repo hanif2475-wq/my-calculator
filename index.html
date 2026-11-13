@@ -32,7 +32,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .mode-pop button{display:block;width:100%;text-align:left;background:#fff;color:#111;padding:10px;font-size:14px}
 .mode-pop button:active{background:#e9f2ff}
 .calc-display{width:100%;flex:1 1 0;height:auto;min-height:150px;display:flex;flex-direction:column;overflow:visible;margin:5px 0 8px;padding:8px;background:#fff;color:#111;border:1px solid #bbb;border-radius:11px}
-.calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:hidden;overflow-wrap:normal;word-break:normal;white-space:pre;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
+.calc-expression{flex:1;min-height:0;width:100%;resize:none;overflow:hidden;overflow-wrap:normal;word-break:keep-all;white-space:pre-wrap;text-align:right;font-size:37px;line-height:1.3;outline:none;border:0;background:transparent;color:#111;padding:0;margin:0;font-family:Arial,sans-serif;user-select:text;-webkit-user-select:text;-webkit-appearance:none;border-radius:0;touch-action:pan-y}
 .live-result{flex:1 1 0;min-width:0;min-height:30px;padding-top:3px;text-align:right;font-size:23px;font-weight:bold;color:#16834a;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 .live-result-row{display:flex;align-items:flex-start;gap:8px;width:100%;min-width:0;min-height:36px;margin-top:4px}
 #calcDisplay:focus,.calc-display:focus-within{outline:none!important;box-shadow:none!important;border-color:#bbb}
@@ -294,19 +294,33 @@ function setDisplayText(value){display.value=value;fitCalcExpression()}
 function fitCalcExpression(){
  if(!display)return;
  const base=window.matchMedia('(max-width:390px)').matches?31:37;
- const min=14, available=Math.max(24,display.clientWidth-8);
+ const min=16, available=Math.max(24,display.clientWidth-8);
  const cs=getComputedStyle(display);
  const canvas=fitCalcExpression.canvas||(fitCalcExpression.canvas=document.createElement('canvas'));
  const ctx=canvas.getContext('2d');
- const value=display.value.replace(/[\r\n]/g,' ');
+ // Fit only the longest unbreakable token (normally a number), not the whole expression.
+ const tokens=display.value.split(/\s+/).filter(Boolean);
  const family=cs.fontFamily||'Arial,sans-serif', weight=cs.fontWeight||'400';
  const spacing=parseFloat(cs.letterSpacing)||0;
- const widthAt=size=>{ctx.font=`${cs.fontStyle||'normal'} ${weight} ${size}px ${family}`;return ctx.measureText(value).width+Math.max(0,value.length-1)*spacing};
+ const longest=tokens.reduce((a,b)=>b.length>a.length?b:a,'');
+ const widthAt=size=>{ctx.font=`${cs.fontStyle||'normal'} ${weight} ${size}px ${family}`;return ctx.measureText(longest).width+Math.max(0,longest.length-1)*spacing};
  let size=base;
- if(widthAt(size)>available){let low=min,high=base;while(low<high){const mid=Math.ceil((low+high)/2);if(widthAt(mid)<=available)low=mid;else high=mid-1}size=low}
+ if(widthAt(base)>available){let low=min,high=base;while(low<high){const mid=Math.ceil((low+high)/2);if(widthAt(mid)<=available)low=mid;else high=mid-1}size=low}
  display.style.fontSize=size+'px';
- display.style.whiteSpace='pre';display.style.overflowX='hidden';
+ display.style.whiteSpace='pre-wrap';display.style.overflowX='hidden';display.style.wordBreak='keep-all';display.style.overflowWrap='normal';
 }
+function formatForWrap(value){
+ let out='';
+ for(let i=0;i<value.length;i++){
+  const ch=value[i], prev=value[i-1]||'', next=value[i+1]||'';
+  const isOp=['+','−','-','×','÷','*','/'].includes(ch);
+  const unary=isOp&&(['+','−','-'].includes(ch))&&(i===0||['(','+','−','-','×','÷','*','/'].includes(prev));
+  if(isOp&&!unary){out=out.replace(/\s+$/,'')+' '+ch+' ';}
+  else out+=ch;
+ }
+ return out.replace(/ {2,}/g,' ').replace(/\s+([)])/g,'$1').replace(/([(])\s+/g,'$1');
+}
+function formattedCaretIndex(value,index){return formatForWrap(value.slice(0,index)).length}
 function saveCalcSelection(){if(document.activeElement===display){calcCaretStart=display.selectionStart??display.value.length;calcCaretEnd=display.selectionEnd??display.value.length}}
 function getCalcSelection(){const len=display.value.length;return{start:Math.max(0,Math.min(calcCaretStart,len)),end:Math.max(0,Math.min(calcCaretEnd,len))}}
 function setCalcSelection(start,end=start){const len=display.value.length;calcCaretStart=Math.max(0,Math.min(start,len));calcCaretEnd=Math.max(0,Math.min(end,len));if(document.activeElement!==display)display.focus({preventScroll:true});try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}requestAnimationFrame(()=>{try{display.setSelectionRange(calcCaretStart,calcCaretEnd)}catch(e){}})}
@@ -319,15 +333,20 @@ function calcAdd(value){
  let text=getDisplayText();if(text==='Error')text='';let{start,end}=getCalcSelection();
  if(text.trim()==='0'&&/^\d+$/.test(value)){text='';start=end=0}
  const operators=['+','−','-','×','÷','*','/'];
- if(operators.includes(value)&&start===end&&start>0&&operators.includes(text[start-1])){
-  // An operator following '(' is a unary sign, not an operator to replace.
-  if(text[start-2]!=='('){text=text.slice(0,start-1)+text.slice(start);start--;end=start;}
+ if(operators.includes(value)&&start===end&&start>0){
+  let opIndex=start-1;while(opIndex>=0&&/\s/.test(text[opIndex]))opIndex--;
+  if(opIndex>=0&&operators.includes(text[opIndex])){
+   // Keep a unary sign after an opening bracket; replace only a binary trailing operator.
+   const before=text.slice(0,opIndex).trimEnd();
+   if(!before.endsWith('(')){text=text.slice(0,opIndex)+text.slice(start);start=opIndex;end=start;}
+  }
  }
- const next=text.slice(0,start)+value+text.slice(end);
- setDisplayText(next);setCalcSelection(start+value.length);updateLive();fitCalcExpression();
+ const raw=text.slice(0,start)+value+text.slice(end);
+ const next=formatForWrap(raw);
+ setDisplayText(next);setCalcSelection(formattedCaretIndex(raw,start+value.length));updateLive();fitCalcExpression();
 }
 function calcClear(){setDisplayText('0');lastLiveResult='';$('liveResult').textContent='';setCalcSelection(1)}
-function calcDelete(){let text=getDisplayText();if(text==='Error')text='';let{start,end}=getCalcSelection();if(start===end&&start>0)start--;const next=text.slice(0,start)+text.slice(end);setDisplayText(next||'0');setCalcSelection(start);updateLive()}
+function calcDelete(){let text=getDisplayText();if(text==='Error')text='';let{start,end}=getCalcSelection();if(start===end&&start>0){while(start>0&&/\s/.test(text[start-1]))start--;if(start>0)start--;}const next=text.slice(0,start)+text.slice(end);setDisplayText(next.trimEnd()||'0');setCalcSelection(Math.min(start,(next.trimEnd()||'0').length));updateLive()}
 function evaluateExpression(input){
  const exp=input.replace(/,/g,'').replace(/\s/g,'').replace(/÷/g,'/').replace(/[×]/g,'*').replace(/−/g,'-');if(!exp)return null;if(!/^[0-9+\-*/().%]+$/.test(exp))throw Error('Invalid characters');const tokens=exp.match(/\d*\.?\d+|[()+\-*/%]/g);if(!tokens||tokens.join('')!==exp)throw Error('Invalid expression');let i=0;const regular=$('calcMode').value==='regular';
  function primary(){let sign=1;while(tokens[i]==='+'||tokens[i]==='-'){if(tokens[i]==='-')sign*=-1;i++}let value;if(tokens[i]==='('){i++;value=regular?addSub():sequential();if(tokens[i]!==')')throw Error('Missing bracket');i++}else{const t=tokens[i++];if(t===undefined||!/^(\d+\.?\d*|\.\d+)$/.test(t))throw Error('Invalid number');value=Number(t)}let isPercent=false;while(tokens[i]==='%'){i++;value/=100;isPercent=true}return{value:sign*value,isPercent}}
@@ -341,7 +360,7 @@ function updateLive(){try{const result=evaluateExpression(getDisplayText());if(r
 function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());setCalcSelection(display.value.length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
 display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){e.preventDefault();calcClear()}});
 /* Convert keyboard operators without losing the tapped caret. */
-display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=old.replace(/\//g,'÷').replace(/\*/g,'×');if(old!==converted){display.value=converted;display.setSelectionRange(s,e);saveCalcSelection()}updateLive()});
+display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=formatForWrap(old.replace(/\//g,'÷').replace(/\*/g,'×'));if(old!==converted){display.value=converted;const ns=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),s);const ne=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),e);try{display.setSelectionRange(ns,ne)}catch(err){}saveCalcSelection()}updateLive();fitCalcExpression()});
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
