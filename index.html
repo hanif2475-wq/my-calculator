@@ -81,6 +81,8 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 .keyboard-hint{font-size:11px;color:#666;text-align:right;margin-top:4px}
 @media(max-width:390px){body{padding:5px 5px 2px}.top{gap:4px;margin-bottom:7px}.top>button{font-size:12px;padding:8px 3px}#calcPanel{height:calc(100dvh - 52px)}.calc-display{min-height:135px;padding:7px}.grid{gap:2px}.calc-expression{font-size:31px}.grid button{min-height:clamp(42px,5.7vh,48px)}.live-result{font-size:21px}}
 @media(min-height:850px) and (min-width:390px){#remitPanel .panel{padding:10px}.result{padding:8px 0}}
+
+.history-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.history-actions button{font-size:12px;padding:8px 10px;background:#263b55;color:#fff}.history-modal{position:fixed;inset:0;z-index:9999;background:#0009;display:flex;align-items:center;justify-content:center;padding:14px}.history-box{width:min(560px,100%);max-height:82dvh;overflow:auto;background:#fff;color:#111;border-radius:14px;padding:14px;box-shadow:0 8px 30px #0005}.history-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.history-head h3{margin:0;font-size:18px}.history-item{border:1px solid #d5dce5;border-radius:9px;padding:10px;margin:8px 0}.history-item strong{display:block;margin-bottom:4px}.history-item small{display:block;color:#526174;margin-bottom:8px}.history-item button{font-size:12px;padding:7px 9px;margin:2px}.history-empty{color:#667085;text-align:center;padding:22px 8px}
 </style>
 
 <!-- Embedded Home Screen icon: single-file build -->
@@ -129,6 +131,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 <button type="button" id="calcKeyboardToggle" onclick="toggleKeyboard()">⌨ iPhone Keyboard</button>
 <button type="button" onclick="capturePage()">ছবি / Share</button>
 </div>
+<div class="history-actions"><button type="button" onclick="openHistory('calc')">📚 History</button></div>
 </div>
 
 <div id="remitPanel" class="hidden">
@@ -162,6 +165,7 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 <div class="small" id="note">বর্তমান রেট ও নিজের নির্ধারিত রেটের হিসাব আলাদা।</div>
 </div>
 <div class="utility-row"><button onclick="toggleKeyboard()" id="remitKeyboardToggle">⌨ iPhone Keyboard</button><button onclick="capturePage()">ছবি / Share</button></div>
+<div class="history-actions"><button type="button" onclick="saveHistory('remit')">💾 হিসাব সেভ</button><button type="button" onclick="openHistory('remit')">📚 History</button></div>
 <div id="remitKeypad" class="remit-keypad hidden">
 <div id="keypadTitle" class="remit-keypad-title">সংখ্যা লিখুন</div>
 <div class="remit-keys">
@@ -209,10 +213,13 @@ input:focus,select:focus,textarea:focus{outline:none;outline-offset:0;box-shadow
 <div class="small" id="stockNote">এটি হিসাবের সহায়ক টুল, সরাসরি QSE বা ব্রোকারের লেনদেন নয়। সঠিক চার্জ আপনার ব্রোকারের স্টেটমেন্ট দেখে বসান।</div>
 </div>
 <div class="utility-row"><button onclick="toggleKeyboard()" id="stockKeyboardToggle">⌨ iPhone Keyboard</button><button onclick="capturePage()">ছবি / Share</button></div>
+<div class="history-actions"><button type="button" onclick="saveHistory('stock')">💾 হিসাব সেভ</button><button type="button" onclick="openHistory('stock')">📚 History</button></div>
 <div id="stockKeypad" class="remit-keypad hidden"><div class="remit-keypad-title">সংখ্যা লিখুন</div><div class="remit-keys"><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key=".">.</button><button type="button" data-key="0">0</button><button type="button" data-key="back">⌫</button><button type="button" data-key="delete">Del</button><button type="button" data-key="clear">মুছুন</button><button type="button" data-key="00">00</button><button type="button" class="done" data-key="done">সম্পন্ন</button></div></div>
 </div>
 </div>
 
+
+<div id="historyModal" class="history-modal hidden" role="dialog" aria-modal="true" aria-label="History"><div class="history-box"><div class="history-head"><h3 id="historyTitle">History</h3><button type="button" onclick="closeHistory()">বন্ধ</button></div><div id="historyList"></div><div class="history-actions"><button type="button" onclick="clearHistory(currentHistoryType)" style="background:#b42318">এই অংশের সব History মুছুন</button></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -375,10 +382,26 @@ function evaluateExpression(input){
 }
 function formatCalcResult(x){return Number(x.toFixed(8)).toLocaleString('en-US',{maximumFractionDigits:8})}
 function updateLive(){try{const result=evaluateExpression(getDisplayText());if(result!==null){lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}}catch(e){}}
-function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;setDisplayText(Number(result.toFixed(8)).toString());setCalcSelection(display.value.length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult}catch(e){$('liveResult').textContent='Error'}}
+function calculate(){try{const result=evaluateExpression(getDisplayText());if(result===null)return;saveHistory('calc');setDisplayText(Number(result.toFixed(8)).toString());setCalcSelection(display.value.length);lastLiveResult=formatCalcResult(result);$('liveResult').textContent=lastLiveResult;}catch(e){$('liveResult').textContent='Error'}}
 display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){e.preventDefault();calcClear()}});
 /* Convert keyboard operators without losing the tapped caret. */
 display.addEventListener('input',()=>{const s=display.selectionStart,e=display.selectionEnd,old=display.value,converted=formatForWrap(old.replace(/\//g,'÷').replace(/\*/g,'×'));if(old!==converted){display.value=converted;const ns=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),s);const ne=formattedCaretIndex(old.replace(/\//g,'÷').replace(/\*/g,'×'),e);try{display.setSelectionRange(ns,ne)}catch(err){}saveCalcSelection()}updateLive();fitCalcExpression();requestAnimationFrame(()=>{display.scrollTop=display.scrollHeight})});
+/* Persistent History: each tool has its own local history on this device. */
+const HISTORY_KEY='calc_remit_qse_history_v1';let currentHistoryType='calc';
+function readHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'{"calc":[],"remit":[],"stock":[]}')}catch(e){return{calc:[],remit:[],stock:[]}}}
+function writeHistory(data){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(data))}catch(e){alert('ফোনের স্টোরেজে জায়গা নেই; কিছু পুরোনো History মুছুন।')}}
+function historySnapshot(type){
+ if(type==='calc'){const expression=getDisplayText();let result='';try{const v=evaluateExpression(expression);result=v===null?'':formatCalcResult(v)}catch(e){}return{title:expression||'হিসাব',detail:result?'ফলাফল: '+result:'অসম্পূর্ণ হিসাব',data:{expression,mode:$('calcMode').value}}}
+ if(type==='remit'){const ids=['fromCurrency','fromAmount','toCurrency','toAmount','manualMainCurrency','manualMainAmount','actualRate','manualRate','incentive','charge','actualConverted','actualConvertedCurrency','manualConverted','manualConvertedCurrency'];const data={};ids.forEach(id=>data[id]=$(id).value);return{title:`${data.fromAmount} ${data.fromCurrency} → ${data.toAmount} ${data.toCurrency}`,detail:`নিজস্ব রেটে: ${data.manualConverted} ${data.manualConvertedCurrency} · রেট: ${data.actualRate}/${data.manualRate}`,data}}
+ const ids=['companyName','buyQty1','buyPrice1','buyQty2','buyPrice2','buyFee','otherBuyFee','sellQty','sellPrice','sellFee','otherSellFee'];const data={};ids.forEach(id=>data[id]=$(id).value);return{title:data.companyName||'QSE শেয়ার হিসাব',detail:`মোট শেয়ার: ${$('totalQty').textContent} · লাভ/ক্ষতি: ${$('netProfit').textContent}`,data};
+}
+function saveHistory(type){const snap=historySnapshot(type);if(type==='calc'&&!snap.data.expression.trim())return;const data=readHistory();data[type]=data[type]||[];data[type].unshift({id:Date.now()+'_'+Math.random().toString(36).slice(2,7),time:new Date().toLocaleString('bn-BD'),...snap});data[type]=data[type].slice(0,200);writeHistory(data);if(type!=='calc')alert('হিসাব History-তে সেভ হয়েছে।');if(!$('historyModal').classList.contains('hidden')&&currentHistoryType===type)renderHistory(type)}
+function openHistory(type){currentHistoryType=type;$('historyTitle').textContent=({calc:'ক্যালকুলেটর History',remit:'রেমিট্যান্স History',stock:'QSE শেয়ার History'})[type];renderHistory(type);$('historyModal').classList.remove('hidden')}
+function closeHistory(){$('historyModal').classList.add('hidden')}
+function renderHistory(type){const list=$('historyList');list.textContent='';const entries=readHistory()[type]||[];if(!entries.length){const empty=document.createElement('div');empty.className='history-empty';empty.textContent='এখনো কোনো হিসাব সেভ করা হয়নি।';list.appendChild(empty);return}entries.forEach(entry=>{const card=document.createElement('div');card.className='history-item';const title=document.createElement('strong');title.textContent=entry.title;const meta=document.createElement('small');meta.textContent=entry.time+' · '+(entry.detail||'');const restore=document.createElement('button');restore.textContent='আবার খুলুন';restore.onclick=()=>restoreHistory(type,entry.id);const del=document.createElement('button');del.textContent='ডিলিট';del.style.background='#b42318';del.onclick=()=>deleteHistory(type,entry.id);card.append(title,meta,restore,del);list.appendChild(card)})}
+function restoreHistory(type,id){const entry=(readHistory()[type]||[]).find(x=>x.id===id);if(!entry)return;if(type==='calc'){setDisplayText(entry.data.expression||'0');$('calcMode').value=entry.data.mode||'sequential';setCalcSelection(display.value.length);updateLive()}else{Object.entries(entry.data||{}).forEach(([id,value])=>{if($(id))$(id).value=value});if(type==='remit')updateRemit('settings');else updateStock()}closeHistory();showTab(type)}
+function deleteHistory(type,id){const data=readHistory();data[type]=(data[type]||[]).filter(x=>x.id!==id);writeHistory(data);renderHistory(type)}
+function clearHistory(type){if(!confirm('এই অংশের সব History মুছে ফেলবেন?'))return;const data=readHistory();data[type]=[];writeHistory(data);renderHistory(type)}
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
