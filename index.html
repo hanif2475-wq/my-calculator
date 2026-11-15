@@ -326,24 +326,43 @@ function fitCalcExpression(){
  display.style.whiteSpace='pre-wrap';display.style.overflowX='hidden';display.style.wordBreak='keep-all';display.style.overflowWrap='normal';
 }
 function formatForWrap(value){
- let out='';
- for(let i=0;i<value.length;i++){
-  const ch=value[i], prev=value[i-1]||'', next=value[i+1]||'';
-  const isOp=['+','−','-','×','÷','*','/'].includes(ch);
-  const unary=isOp&&(['+','−','-'].includes(ch))&&(i===0||['(','+','−','-','×','÷','*','/'].includes(prev));
-  if(isOp&&!unary){out=out.replace(/\s+$/,'')+' '+ch+' ';}
-  else out+=ch;
+ // Remove old visual line breaks and escaped newline text before formatting.
+ value=String(value??'').replace(/\\r\\n|\\n|\\r/g,'').replace(/\r\n|\r|\n/g,'').replace(/\\\\n/g,'');
+ const tokens=[];let i=0,prev='';
+ while(i<value.length){
+  const ch=value[i];
+  if(/\s/.test(ch)){i++;continue;}
+  if(/[0-9.]/.test(ch)){
+   let n='';while(i<value.length&&/[0-9.]/.test(value[i]))n+=value[i++];
+   if(prev==='unary') { tokens[tokens.length-1]+=n; }
+   else tokens.push(n);
+   prev='value';continue;
+  }
+  if('+-−'.includes(ch)){
+   const unary=!tokens.length||['op','open'].includes(prev);
+   if(unary){tokens.push(ch);prev='unary';}else{tokens.push(ch);prev='op';}
+   i++;continue;
+  }
+  if('×÷*/'.includes(ch)){tokens.push(ch==='*'?'×':ch==='/ ' ? '÷' : ch);if(tokens[tokens.length-1]==='*')tokens[tokens.length-1]='×';if(tokens[tokens.length-1]==='/')tokens[tokens.length-1]='÷';prev='op';i++;continue;}
+  if(ch==='('){tokens.push('(');prev='open';i++;continue;}
+  if(ch===')'){tokens.push(')');prev='close';i++;continue;}
+  if(ch==='%'){tokens.push('%');prev='value';i++;continue;}
+  // Ignore stray pasted letters such as the extra "n" in a literal \\n sequence.
+  i++;
  }
- out=out.replace(/ {2,}/g,' ').replace(/\s+([)])/g,'$1').replace(/([(])\s+/g,'$1');
- // Wrap by character count regardless of whether operators are present.
- const lines=[]; let line='';
- for(const ch of out){
-  if(ch==='\\n'){lines.push(line.trimEnd());line='';continue;}
-  if(line.length>=25){lines.push(line.trimEnd());line='';}
-  line+=ch;
+ const lines=[];let line='';
+ for(let j=0;j<tokens.length;j++){
+  const t=tokens[j];
+  let piece=t;
+  if(['+','−','-','×','÷'].includes(t)) piece=(line?' ':'')+t+' ';
+  else if(t==='(') piece=(line&&/[0-9.)%]$/.test(line)?' ':'')+'(';
+  else if(t===')'||t==='%') piece=t;
+  else if(j>0&&!['(','+','−','-','×','÷'].includes(tokens[j-1])) piece=' '+t;
+  if(line.length&&line.length+piece.length>25){lines.push(line.trimEnd());line=piece.trimStart();}
+  else line+=piece;
  }
- if(line || !lines.length) lines.push(line);
- return lines.join('\\n');
+ if(line.trim()||!lines.length)lines.push(line.trimEnd());
+ return lines.join('\n');
 }
 function formattedCaretIndex(value,index){return formatForWrap(value.slice(0,index)).length}
 function saveCalcSelection(){if(document.activeElement===display){calcCaretStart=display.selectionStart??display.value.length;calcCaretEnd=display.selectionEnd??display.value.length}}
@@ -389,23 +408,23 @@ display.addEventListener('input',()=>{const s=display.selectionStart,e=display.s
 /* Persistent History: each tool has its own local history on this device. */
 const HISTORY_KEY='calc_remit_qse_history_v1';let currentHistoryType='calc';
 function readHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'{"calc":[],"remit":[],"stock":[]}')}catch(e){return{calc:[],remit:[],stock:[]}}}
-function writeHistory(data){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(data))}catch(e){alert('ফোনের স্টোরেজে জায়গা নেই; কিছু পুরোনো History মুছুন।')}}
+function writeHistory(data){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(data))}catch(e){alert('ফোনের স্টোরেজে জায়গা নেই; কিছু পুরোনো History মুছুন।')}}
 function historySnapshot(type){
  if(type==='calc'){const expression=getDisplayText();let result='';try{const v=evaluateExpression(expression);result=v===null?'':formatCalcResult(v)}catch(e){}return{title:expression||'হিসাব',detail:result?'ফলাফল: '+result:'অসম্পূর্ণ হিসাব',data:{expression,mode:$('calcMode').value}}}
  if(type==='remit'){const ids=['fromCurrency','fromAmount','toCurrency','toAmount','manualMainCurrency','manualMainAmount','actualRate','manualRate','incentive','charge','actualConverted','actualConvertedCurrency','manualConverted','manualConvertedCurrency'];const data={};ids.forEach(id=>data[id]=$(id).value);return{title:`${data.fromAmount} ${data.fromCurrency} → ${data.toAmount} ${data.toCurrency}`,detail:`নিজস্ব রেটে: ${data.manualConverted} ${data.manualConvertedCurrency} · রেট: ${data.actualRate}/${data.manualRate}`,data}}
  const ids=['companyName','buyQty1','buyPrice1','buyQty2','buyPrice2','buyFee','otherBuyFee','sellQty','sellPrice','sellFee','otherSellFee'];const data={};ids.forEach(id=>data[id]=$(id).value);return{title:data.companyName||'QSE শেয়ার হিসাব',detail:`মোট শেয়ার: ${$('totalQty').textContent} · লাভ/ক্ষতি: ${$('netProfit').textContent}`,data};
 }
-function saveHistory(type){const snap=historySnapshot(type);if(type==='calc'&&!snap.data.expression.trim())return;const data=readHistory();data[type]=data[type]||[];data[type].unshift({id:Date.now()+'_'+Math.random().toString(36).slice(2,7),time:new Date().toLocaleString('bn-BD'),...snap});data[type]=data[type].slice(0,200);writeHistory(data);if(type!=='calc')alert('হিসাব History-তে সেভ হয়েছে।');if(!$('historyModal').classList.contains('hidden')&&currentHistoryType===type)renderHistory(type)}
+function saveHistory(type){const snap=historySnapshot(type);if(type==='calc'&&!snap.data.expression.trim())return;const data=readHistory();data[type]=data[type]||[];data[type].unshift({id:Date.now()+'_'+Math.random().toString(36).slice(2,7),time:new Date().toLocaleString('bn-BD'),...snap});data[type]=data[type].slice(0,200);writeHistory(data);if(type!=='calc')alert('হিসাব History-তে সেভ হয়েছে।');if(!$('historyModal').classList.contains('hidden')&&currentHistoryType===type)renderHistory(type)}
 function openHistory(type){currentHistoryType=type;$('historyTitle').textContent=({calc:'ক্যালকুলেটর History',remit:'রেমিট্যান্স History',stock:'QSE শেয়ার History'})[type];renderHistory(type);$('historyModal').classList.remove('hidden')}
 function closeHistory(){$('historyModal').classList.add('hidden')}
-function renderHistory(type){const list=$('historyList');list.textContent='';const entries=readHistory()[type]||[];if(!entries.length){const empty=document.createElement('div');empty.className='history-empty';empty.textContent='এখনো কোনো হিসাব সেভ করা হয়নি।';list.appendChild(empty);return}entries.forEach(entry=>{const card=document.createElement('div');card.className='history-item';const title=document.createElement('strong');title.textContent=entry.title;const meta=document.createElement('small');meta.textContent=entry.time+' · '+(entry.detail||'');const restore=document.createElement('button');restore.textContent='আবার খুলুন';restore.onclick=()=>restoreHistory(type,entry.id);const del=document.createElement('button');del.textContent='ডিলিট';del.style.background='#b42318';del.onclick=()=>deleteHistory(type,entry.id);card.append(title,meta,restore,del);list.appendChild(card)})}
+function renderHistory(type){const list=$('historyList');list.textContent='';const entries=readHistory()[type]||[];if(!entries.length){const empty=document.createElement('div');empty.className='history-empty';empty.textContent='এখনো কোনো হিসাব সেভ করা হয়নি।';list.appendChild(empty);return}entries.forEach(entry=>{const card=document.createElement('div');card.className='history-item';const title=document.createElement('strong');title.textContent=entry.title;const meta=document.createElement('small');meta.textContent=entry.time+' · '+(entry.detail||'');const restore=document.createElement('button');restore.textContent='আবার খুলুন';restore.onclick=()=>restoreHistory(type,entry.id);const del=document.createElement('button');del.textContent='ডিলিট';del.style.background='#b42318';del.onclick=()=>deleteHistory(type,entry.id);card.append(title,meta,restore,del);list.appendChild(card)})}
 function restoreHistory(type,id){const entry=(readHistory()[type]||[]).find(x=>x.id===id);if(!entry)return;if(type==='calc'){setDisplayText(entry.data.expression||'0');$('calcMode').value=entry.data.mode||'sequential';setCalcSelection(display.value.length);updateLive()}else{Object.entries(entry.data||{}).forEach(([id,value])=>{if($(id))$(id).value=value});if(type==='remit')updateRemit('settings');else updateStock()}closeHistory();showTab(type)}
 function deleteHistory(type,id){const data=readHistory();data[type]=(data[type]||[]).filter(x=>x.id!==id);writeHistory(data);renderHistory(type)}
 function clearHistory(type){if(!confirm('এই অংশের সব History মুছে ফেলবেন?'))return;const data=readHistory();data[type]=[];writeHistory(data);renderHistory(type)}
 async function capturePage(){
  const panel=$(activeTab+'Panel');
  const oldScroll=window.scrollY;
- if(typeof html2canvas!=='function'){alert('ছবি তৈরির লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ দিয়ে আবার চেষ্টা করুন।');return}
+ if(typeof html2canvas!=='function'){alert('ছবি তৈরির লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ দিয়ে আবার চেষ্টা করুন।');return}
  const utility=[...panel.querySelectorAll('.utility-row')];
  const keypads=[...panel.querySelectorAll('.remit-keypad')];
  const oldVisibility=utility.map(x=>x.style.visibility);
@@ -467,7 +486,7 @@ async function capturePage(){
    try{await navigator.share({files:[file],title:'Calculator result'})}
    catch(err){if(err.name!=='AbortError')downloadImage(canvas)}
   }else downloadImage(canvas);
- }catch(e){alert('ছবি তৈরি করা যায়নি। আবার চেষ্টা করুন।')}
+ }catch(e){alert('ছবি তৈরি করা যায়নি। আবার চেষ্টা করুন।')}
  finally{
   utility.forEach((x,i)=>x.style.visibility=oldVisibility[i]);
   keypads.forEach((x,i)=>x.classList.toggle('hidden',oldKeypadState[i]));
